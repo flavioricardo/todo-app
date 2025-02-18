@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Text, TextField, Checkbox, Box, Fieldset, ColorSchemeProvider, SearchField, SelectList, Badge } from 'gestalt';
-import 'gestalt/dist/gestalt.css';
 
 const translations = {
   en: {
