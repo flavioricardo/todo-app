@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Text, TextField, Checkbox, Box, Fieldset, ColorSchemeProvider, SearchField, SelectList, Badge } from 'gestalt';
+import 'gestalt/dist/gestalt.css';
 
 const translations = {
   en: {
@@ -21,8 +22,8 @@ const translations = {
       household_chores: 'Chores',
       transportation: 'Transport',
       physical_activity: 'Exercise',
-      social_interaction: 'Social'
-    }
+      social_interaction: 'Social',
+    },
   },
   pt: {
     darkMode: 'Modo Escuro',
@@ -43,9 +44,9 @@ const translations = {
       household_chores: 'Tarefas',
       transportation: 'Transporte',
       physical_activity: 'Exercício',
-      social_interaction: 'Social'
-    }
-  }
+      social_interaction: 'Social',
+    },
+  },
 };
 
 const categoryColors = {
@@ -55,7 +56,7 @@ const categoryColors = {
   household_chores: 'warning',
   transportation: 'recommendation',
   physical_activity: 'darkWash',
-  social_interaction: 'neutral'
+  social_interaction: 'neutral',
 };
 
 const getCategoryColor = (categoryValue) => categoryColors[categoryValue] || 'neutral';
@@ -83,7 +84,7 @@ export default function TodoApp() {
   }, [tasks]);
 
   const toggleTheme = () => {
-    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
   };
 
   const addTask = () => {
@@ -101,12 +102,12 @@ export default function TodoApp() {
   };
 
   const clearCompletedTasks = () => {
-    const filteredTasks = tasks.filter(task => !task.completed);
+    const filteredTasks = tasks.filter((task) => !task.completed);
     setTasks(filteredTasks);
     localStorage.setItem('tasks', JSON.stringify(filteredTasks));
   };
 
-  const filteredTasks = tasks.filter(task => {
+  const filteredTasks = tasks.filter((task) => {
     const matchesSearch = task.text.toLowerCase().includes(searchTerm.toLowerCase());
     if (filterStatus === 'completed') return matchesSearch && task.completed;
     if (filterStatus === 'pending') return matchesSearch && !task.completed;
@@ -117,13 +118,13 @@ export default function TodoApp() {
     <ColorSchemeProvider colorScheme={theme}>
       <Box
         padding={4}
-        maxWidth={600}
-        marginLeft="auto"
-        marginRight="auto"
-        color={theme === 'light' ? 'lightGray' : 'darkWash'}
+        margin="auto"
+        color={theme === 'light' ? 'light' : 'dark'}
         rounding={4}
+        justifyContent="center"
         display="block"
-        width="100%"
+        fit
+        maxWidth={1024}
       >
         <Box display="flex" justifyContent="between" alignItems="center" marginBottom={2} width="100%">
           <SelectList id="languageSelect" onChange={({ value }) => setLanguage(value)}>
@@ -133,20 +134,25 @@ export default function TodoApp() {
           <Button text={theme === 'light' ? translations[language].darkMode : translations[language].lightMode} onClick={toggleTheme} />
         </Box>
         <Box padding={3} color="red" rounding={2} width="100%">
-          <Text align="center" size="lg" weight="bold" color="white">To-Do App</Text>
+          <Text align="center" size="lg" weight="bold" color="white">
+            To-Do App
+          </Text>
         </Box>
-                <Box marginTop={4} width="100%" display="flex" justifyContent="between" alignItems="center" gap={2}>
+        <Box marginTop={4} width="100%" display="flex" justifyContent="between" alignItems="center" gap={2}>
           <SelectList id="categorySelect" onChange={({ value }) => setCategory(value)}>
-            {Object.keys(categoryColors).map(value => (
+            {Object.keys(categoryColors).map((value) => (
               <SelectList.Option key={value} label={translations[language].categories[value]} value={value} />
             ))}
           </SelectList>
-          <TextField
-            id="taskInput"
-            onChange={({ value }) => setTask(value)}
-            placeholder={translations[language].addTaskPlaceholder}
-            value={task}
-          />
+          <Box flex="grow" paddingX={2}>
+            <TextField
+              id="taskInput"
+              onChange={({ value }) => setTask(value)}
+              placeholder={translations[language].addTaskPlaceholder}
+              value={task}
+              width="100%"
+            />
+          </Box>
           <Button text={translations[language].addTask} onClick={addTask} color="blue" />
         </Box>
         <Box marginTop={4} width="100%" display="flex" justifyContent="between" alignItems="center" gap={2}>
@@ -178,7 +184,7 @@ export default function TodoApp() {
             ))}
           </Fieldset>
         </Box>
-                {tasks.some(task => task.completed) && (
+        {tasks.some((task) => task.completed) && (
           <Box marginTop={4} width="100%" display="flex" justifyContent="left">
             <Button text={translations[language].clearCompleted} onClick={clearCompletedTasks} color="red" />
           </Box>
