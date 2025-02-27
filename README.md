@@ -1,6 +1,12 @@
-# Getting Started with Create React App
+# To-Do App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project is a To-Do list application created with React. It allows users to add, filter, mark as completed, and remove tasks. The app also supports theme switching (light/dark) and language selection (Portuguese/English).
+
+## Technologies Used
+
+- **React**: JavaScript library for building user interfaces.
+- **Gestalt**: UI component library developed by Pinterest.
+- **LocalStorage**: Used to persist data in the user's browser.
 
 ## Available Scripts
 
@@ -8,7 +14,7 @@ In the project directory, you can run:
 
 ### `npm start`
 
-Runs the app in the development mode.\
+Runs the app in development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
 The page will reload when you make changes.\
@@ -29,42 +35,37 @@ Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### `npm run eject`
+## To-Do App Features
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- **Add Tasks**: Allows adding new tasks with a category and text.
+- **Mark as Completed**: Allows marking tasks as completed or not completed.
+- **Filter Tasks**: Allows filtering tasks by all, completed, or pending.
+- **Search Tasks**: Allows searching tasks by text.
+- **Clear Completed Tasks**: Allows removing all tasks that have been marked as completed.
+- **Theme Switching**: Allows toggling between light and dark themes.
+- **Language Selection**: Allows toggling between Portuguese and English languages.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Project Structure
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+- **src/components/TodoApp/TodoApp.js**: Main component of the application that contains all the logic and user interface.
+- **src/index.js**: Entry point of the React application.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## How It Works
 
-## Learn More
+The To-Do App uses `useState` to manage the state of tasks, theme, language, etc. `useEffect` is used to persist the state in `localStorage` and retrieve the saved state when the app is loaded.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Add Task
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+The `addTask` function adds a new task to the `tasks` state and saves it in `localStorage`.
 
-### Code Splitting
+### Mark as Completed
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+The `toggleTaskCompletion` function toggles the completion state of a specific task.
 
-### Analyzing the Bundle Size
+### Clear Completed Tasks
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+The `clearCompletedTasks` function removes all tasks that have been marked as completed.
 
-### Making a Progressive Web App
+### Filter and Search Tasks
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+The `filteredTasks` function filters tasks based on the search term and filter status (all, completed, pending).
