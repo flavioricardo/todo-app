@@ -158,10 +158,11 @@ export default function TodoApp() {
         padding={4}
         margin="auto"
         color={theme === 'light' ? 'light' : 'dark'}
-        rounding={4}
+        rounding={0}
         justifyContent="center"
         display="block"
         fit
+        height="100vh"
         maxWidth={size === 'scale' ? '100%' : 1024}
       >
         <Box
