@@ -62,3 +62,7 @@ h6 {
 #__next {
   isolation: isolate;
 }
+
+#categorySelect > option {
+  color: #111;
+}

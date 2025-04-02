@@ -12,8 +12,11 @@ import {
   Toast,
   Flex,
   PageHeader,
+  Image,
+  ButtonGroup,
 } from "gestalt";
 import "gestalt/dist/gestalt.css";
+import { storage } from "../../utils/storage";
 
 // Traduções
 const translations = {
@@ -84,76 +87,59 @@ const getCategoryColor = (categoryValue) => {
 
 export default function TodoApp() {
   // Estados
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
-  const [language, setLanguage] = useState(
-    localStorage.getItem("language") || "pt"
-  );
+  const [theme, setTheme] = useState(storage.get("theme", "lightWash"));
+  const [language, setLanguage] = useState(storage.get("language", "pt"));
   const [task, setTask] = useState("");
   const [category, setCategory] = useState(Object.keys(categoryColors)[0]);
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState(storage.get("tasks", []));
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [showToast, setShowToast] = useState(false);
 
   // Efeitos
   useEffect(() => {
-    localStorage.setItem("theme", theme);
+    storage.set("theme", theme);
   }, [theme]);
 
   useEffect(() => {
-    localStorage.setItem("language", language);
+    storage.set("language", language);
   }, [language]);
 
   useEffect(() => {
-    try {
-      const savedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
-      setTasks(savedTasks);
-    } catch (error) {
-      console.error("Error parsing tasks from localStorage:", error);
-      setTasks([]);
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
+    storage.set("tasks", tasks);
   }, [tasks]);
 
   // Funções
   const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
+    setTheme((prev) => (prev === "lightWash" ? "dark" : "lightWash"));
   };
 
   const addTask = () => {
     if (!task) return;
     const newTasks = [...tasks, { text: task, category, completed: false }];
     setTasks(newTasks);
-    localStorage.setItem("tasks", JSON.stringify(newTasks));
     setTask("");
   };
 
   const toggleTaskCompletion = (index) => {
-    const updatedTasks = tasks.map((t, i) =>
+    const updated = tasks.map((t, i) =>
       i === index ? { ...t, completed: !t.completed } : t
     );
-    setTasks(updatedTasks);
-    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
+    setTasks(updated);
   };
 
   const clearCompletedTasks = () => {
-    const filteredTasks = tasks.filter((task) => !task.completed);
-    setTasks(filteredTasks);
-    localStorage.setItem("tasks", JSON.stringify(filteredTasks));
+    const remaining = tasks.filter((t) => !t.completed);
+    setTasks(remaining);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
 
   const filteredTasks = tasks.filter((task) => {
-    const matchesSearch = task.text
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    if (filterStatus === "completed") return matchesSearch && task.completed;
-    if (filterStatus === "pending") return matchesSearch && !task.completed;
-    return matchesSearch;
+    const matches = task.text.toLowerCase().includes(searchTerm.toLowerCase());
+    if (filterStatus === "completed") return matches && task.completed;
+    if (filterStatus === "pending") return matches && !task.completed;
+    return matches;
   });
 
   // Renderização
@@ -163,7 +149,7 @@ export default function TodoApp() {
         as="main"
         margin="auto"
         padding={4}
-        color={theme === "light" ? "light" : "dark"}
+        color={theme === "lightWash" ? "lightWash" : "dark"}
         rounding={0}
         justifyContent="center"
         display="block"
@@ -172,29 +158,36 @@ export default function TodoApp() {
         {/* Cabeçalho */}
         <PageHeader
           title="To-Do App"
-          paddingX={0}
+          thumbnail={
+            <Image
+              alt="To-Do App"
+              key="logo"
+              fit="contain"
+              naturalHeight={1}
+              naturalWidth={1}
+              src="public/logo512.png"
+            />
+          }
           primaryAction={{
             component: (
-              <SelectList
-                id="languageSelect"
-                value={language}
-                onChange={({ value }) => setLanguage(value)}
-              >
-                <SelectList.Option label="Português" value="pt" />
-                <SelectList.Option label="English" value="en" />
-              </SelectList>
-            ),
-          }}
-          secondaryAction={{
-            component: (
-              <Button
-                text={
-                  theme === "light"
-                    ? translations[language].darkMode
-                    : translations[language].lightMode
-                }
-                onClick={toggleTheme}
-              />
+              <ButtonGroup key="primaryAction">
+                <Button
+                  text={
+                    theme === "lightWash"
+                      ? translations[language].darkMode
+                      : translations[language].lightMode
+                  }
+                  onClick={toggleTheme}
+                />
+                <SelectList
+                  id="languageSelect"
+                  value={language}
+                  onChange={({ value }) => setLanguage(value)}
+                >
+                  <SelectList.Option label="Português" value="pt" />
+                  <SelectList.Option label="English" value="en" />
+                </SelectList>
+              </ButtonGroup>
             ),
           }}
         />
