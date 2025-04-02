@@ -1,31 +1,37 @@
-import "gestalt/dist/gestalt.css";
-
+import React, { useState, useEffect } from "react";
 import {
-  Badge,
-  Box,
   Button,
-  ButtonGroup,
+  TextField,
   Checkbox,
-  ColorSchemeProvider,
-  CompositeZIndex,
+  Box,
   Fieldset,
-  FixedZIndex,
-  Flex,
-  Heading,
-  Image,
-  Layer,
-  Modal,
-  PageHeader,
+  ColorSchemeProvider,
   SearchField,
   SelectList,
-  TextField,
+  Badge,
   Toast,
+  Flex,
+  PageHeader,
+  Image,
+  ButtonGroup,
+  Layer,
+  Modal,
+  Heading,
+  FixedZIndex,
+  CompositeZIndex,
 } from "gestalt";
-import React, { useEffect, useState } from "react";
-
+import "gestalt/dist/gestalt.css";
 import { storage } from "./utils/storage";
+import { auth } from "./firebase";
+import {
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged,
+  GoogleAuthProvider,
+} from "firebase/auth";
 
-// Traduções
+// Translations
 const translations = {
   en: {
     darkMode: "Dark Mode",
@@ -77,7 +83,7 @@ const translations = {
   },
 };
 
-// Cores das categorias
+// Category Colors
 const categoryColors = {
   personal_care: "info",
   meal: "success",
@@ -88,7 +94,7 @@ const categoryColors = {
   social_interaction: "neutral",
 };
 
-// Função para obter a cor da categoria
+// Helper Functions
 const getCategoryColor = (categoryValue) => {
   if (!categoryColors[categoryValue]) {
     console.warn(`Unknown category: ${categoryValue}`);
@@ -97,7 +103,7 @@ const getCategoryColor = (categoryValue) => {
 };
 
 export default function TodoApp() {
-  // Estados
+  // States
   const [theme, setTheme] = useState(storage.get("theme", "lightWash"));
   const [language, setLanguage] = useState(storage.get("language", "pt"));
   const [task, setTask] = useState("");
@@ -107,7 +113,15 @@ export default function TodoApp() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [showToast, setShowToast] = useState(false);
 
-  // Efeitos
+  // Authentication States
+  const [user, setUser] = useState(null);
+  const [openLoginModal, setOpenLoginModal] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+
+  const googleProvider = new GoogleAuthProvider();
+
+  // Effects
   useEffect(() => {
     storage.set("theme", theme);
   }, [theme]);
@@ -120,9 +134,45 @@ export default function TodoApp() {
     storage.set("tasks", tasks);
   }, [tasks]);
 
-  // Funções
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Handlers
   const toggleTheme = () => {
     setTheme((prev) => (prev === "lightWash" ? "dark" : "lightWash"));
+  };
+
+  const handleLoginEmail = async () => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        loginEmail,
+        loginPassword
+      );
+      setUser(userCredential.user);
+      setOpenLoginModal(false);
+    } catch (error) {
+      alert("Erro ao logar com email: " + error.message);
+    }
+  };
+
+  const handleLoginGoogle = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      setUser(result.user);
+      setOpenLoginModal(false);
+    } catch (error) {
+      alert("Erro ao logar com Google: " + error.message);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    setUser(null);
   };
 
   const addTask = () => {
@@ -153,17 +203,10 @@ export default function TodoApp() {
     return matches;
   });
 
-  const [user, setUser] = useState({});
-  const [openLoginModal, setOpenLoginModal] = useState(false);
-
-  const toggleLoginModal = () => {
-    setOpenLoginModal((prev) => !prev);
-  };
-
+  // Z-Index
   const HEADER_ZINDEX = new FixedZIndex(10);
   const zIndex = new CompositeZIndex([HEADER_ZINDEX]);
 
-  // Renderização
   return (
     <ColorSchemeProvider colorScheme={theme}>
       <Box
@@ -176,7 +219,7 @@ export default function TodoApp() {
         display="block"
         height="100vh"
       >
-        {/* Cabeçalho */}
+        {/* Header */}
         <PageHeader
           title="To-Do App"
           thumbnail={
@@ -214,41 +257,74 @@ export default function TodoApp() {
                       ? translations[language].signOut
                       : translations[language].signIn
                   }
-                  color="white"
                   iconEnd="person"
-                  onClick={toggleLoginModal}
+                  color="white"
+                  onClick={
+                    user?.email ? handleSignOut : () => setOpenLoginModal(true)
+                  }
                 />
               </ButtonGroup>
             ),
           }}
         />
-        {/* Modal de Login */}
+
+        {/* Login Modal */}
         {openLoginModal && (
           <Layer zIndex={zIndex}>
             <Modal
-              closeOnOutsideClick
-              accessibilityModalLabel="View default padding and styling"
-              footer={<Heading size="600">Footer</Heading>}
-              heading="Small modal"
-              onDismiss={() => {
-                // dispatch({ type: "none" });
-              }}
+              accessibilityModalLabel="Login"
+              heading={translations[language].signIn}
+              onDismiss={() => setOpenLoginModal(false)}
               size="sm"
+              footer={
+                <Flex justifyContent="between">
+                  {user?.email && (
+                    <Button
+                      text={translations[language].signOut}
+                      onClick={handleSignOut}
+                      color="red"
+                    />
+                  )}
+                </Flex>
+              }
             >
-              <Heading size="600">Children</Heading>
+              <Box direction="column" padding={4}>
+                {!user?.email && (
+                  <Flex direction="column" gap={4}>
+                    <TextField
+                      id="email"
+                      type="email"
+                      onChange={({ value }) => setLoginEmail(value)}
+                      placeholder="Email"
+                    />
+                    <TextField
+                      id="password"
+                      type="password"
+                      onChange={({ value }) => setLoginPassword(value)}
+                      placeholder="Password"
+                    />
+                    <Button
+                      text="Login with Email"
+                      onClick={handleLoginEmail}
+                      color="blue"
+                    />
+                    <Button
+                      text="Login with Google"
+                      onClick={handleLoginGoogle}
+                      iconEnd="google-plus"
+                    />
+                  </Flex>
+                )}
+                {user?.email && (
+                  <Heading size="400">Bem-vindo, {user.email}</Heading>
+                )}
+              </Box>
             </Modal>
           </Layer>
         )}
 
-        {/* Adicionar Tarefa */}
-        <Box
-          marginTop={4}
-          width="100%"
-          display="flex"
-          justifyContent="between"
-          alignItems="center"
-          gap={2}
-        >
+        {/* Add Task */}
+        <Box marginTop={4} width="100%" display="flex" gap={2}>
           <SelectList
             id="categorySelect"
             onChange={({ value }) => setCategory(value)}
@@ -276,15 +352,9 @@ export default function TodoApp() {
             color="blue"
           />
         </Box>
-        {/* Filtros */}
-        <Box
-          marginTop={4}
-          width="100%"
-          display="flex"
-          justifyContent="between"
-          alignItems="center"
-          gap={2}
-        >
+
+        {/* Filters */}
+        <Box marginTop={4} width="100%" display="flex" gap={2}>
           <SearchField
             accessibilityLabel={translations[language].searchPlaceholder}
             id="searchField"
@@ -307,8 +377,9 @@ export default function TodoApp() {
             />
           </SelectList>
         </Box>
-        {/* Lista de Tarefas */}
-        <Box marginTop={4} width="100%" display="block">
+
+        {/* Task List */}
+        <Box marginTop={4} width="100%">
           <Fieldset legend={translations[language].taskList}>
             {filteredTasks.map((t, index) => (
               <Box
@@ -332,7 +403,8 @@ export default function TodoApp() {
             ))}
           </Fieldset>
         </Box>
-        {/* Botão Limpar Concluídas */}
+
+        {/* Clear Completed Button */}
         {tasks.some((task) => task.completed) && (
           <Box marginTop={4} width="100%" display="flex" justifyContent="left">
             <Button
@@ -342,6 +414,7 @@ export default function TodoApp() {
             />
           </Box>
         )}
+
         {/* Toast */}
         {showToast && (
           <Flex
