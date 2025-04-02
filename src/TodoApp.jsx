@@ -525,12 +525,7 @@ export default function TodoApp() {
 
           {/* Clear Completed Button */}
           {tasks.some((task) => task.completed) && (
-            <Box
-              marginTop={4}
-              width="100%"
-              display="flex"
-              justifyContent="center"
-            >
+            <Box marginTop={4} width="100%" display="flex">
               <Button
                 text={translations[language].clearCompleted}
                 onClick={clearCompletedTasks}
