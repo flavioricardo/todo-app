@@ -1,27 +1,29 @@
-import React, { useState, useEffect } from "react";
+import "gestalt/dist/gestalt.css";
+
 import {
-  Button,
-  TextField,
-  Checkbox,
-  Box,
-  Fieldset,
-  ColorSchemeProvider,
-  SearchField,
-  SelectList,
   Badge,
-  Toast,
-  Flex,
-  PageHeader,
-  Image,
+  Box,
+  Button,
   ButtonGroup,
+  Checkbox,
+  ColorSchemeProvider,
+  CompositeZIndex,
+  Fieldset,
+  FixedZIndex,
+  Flex,
+  Heading,
+  Image,
   Layer,
   Modal,
-  Heading,
-  FixedZIndex,
-  CompositeZIndex,
+  PageHeader,
+  SearchField,
+  SelectList,
+  TextField,
+  Toast,
 } from "gestalt";
-import "gestalt/dist/gestalt.css";
-import { storage } from "../../utils/storage";
+import React, { useEffect, useState } from "react";
+
+import { storage } from "./utils/storage";
 
 // Traduções
 const translations = {
