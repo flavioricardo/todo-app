@@ -15,6 +15,7 @@ import {
 } from "gestalt";
 import "gestalt/dist/gestalt.css";
 
+// Traduções
 const translations = {
   en: {
     darkMode: "Dark Mode",
@@ -62,6 +63,7 @@ const translations = {
   },
 };
 
+// Cores das categorias
 const categoryColors = {
   personal_care: "info",
   meal: "success",
@@ -72,6 +74,7 @@ const categoryColors = {
   social_interaction: "neutral",
 };
 
+// Função para obter a cor da categoria
 const getCategoryColor = (categoryValue) => {
   if (!categoryColors[categoryValue]) {
     console.warn(`Unknown category: ${categoryValue}`);
@@ -80,6 +83,8 @@ const getCategoryColor = (categoryValue) => {
 };
 
 export default function TodoApp() {
+  // Estados
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [language, setLanguage] = useState(
     localStorage.getItem("language") || "pt"
   );
@@ -88,8 +93,12 @@ export default function TodoApp() {
   const [tasks, setTasks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [theme, setTheme] = useState("light");
   const [showToast, setShowToast] = useState(false);
+
+  // Efeitos
+  useEffect(() => {
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   useEffect(() => {
     localStorage.setItem("language", language);
@@ -109,6 +118,7 @@ export default function TodoApp() {
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
 
+  // Funções
   const toggleTheme = () => {
     setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
   };
@@ -146,24 +156,28 @@ export default function TodoApp() {
     return matchesSearch;
   });
 
+  // Renderização
   return (
     <ColorSchemeProvider colorScheme={theme}>
       <Box
-        padding={0}
+        as="main"
         margin="auto"
+        padding={4}
         color={theme === "light" ? "light" : "dark"}
         rounding={0}
         justifyContent="center"
         display="block"
-        fit
         height="100vh"
       >
+        {/* Cabeçalho */}
         <PageHeader
           title="To-Do App"
+          paddingX={0}
           primaryAction={{
             component: (
               <SelectList
                 id="languageSelect"
+                value={language}
                 onChange={({ value }) => setLanguage(value)}
               >
                 <SelectList.Option label="Português" value="pt" />
@@ -184,6 +198,7 @@ export default function TodoApp() {
             ),
           }}
         />
+        {/* Adicionar Tarefa */}
         <Box
           marginTop={4}
           width="100%"
@@ -219,6 +234,7 @@ export default function TodoApp() {
             color="blue"
           />
         </Box>
+        {/* Filtros */}
         <Box
           marginTop={4}
           width="100%"
@@ -249,6 +265,7 @@ export default function TodoApp() {
             />
           </SelectList>
         </Box>
+        {/* Lista de Tarefas */}
         <Box marginTop={4} width="100%" display="block">
           <Fieldset legend={translations[language].taskList}>
             {filteredTasks.map((t, index) => (
@@ -273,6 +290,7 @@ export default function TodoApp() {
             ))}
           </Fieldset>
         </Box>
+        {/* Botão Limpar Concluídas */}
         {tasks.some((task) => task.completed) && (
           <Box marginTop={4} width="100%" display="flex" justifyContent="left">
             <Button
@@ -282,6 +300,7 @@ export default function TodoApp() {
             />
           </Box>
         )}
+        {/* Toast */}
         {showToast && (
           <Flex
             alignItems="end"
