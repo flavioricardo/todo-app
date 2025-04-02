@@ -14,6 +14,11 @@ import {
   PageHeader,
   Image,
   ButtonGroup,
+  Layer,
+  Modal,
+  Heading,
+  FixedZIndex,
+  CompositeZIndex,
 } from "gestalt";
 import "gestalt/dist/gestalt.css";
 import { storage } from "../../utils/storage";
@@ -23,6 +28,8 @@ const translations = {
   en: {
     darkMode: "Dark Mode",
     lightMode: "Light Mode",
+    signIn: "Sign In",
+    signOut: "Sign Out",
     addTask: "Add Task",
     searchPlaceholder: "Search task...",
     clearCompleted: "Clear Completed",
@@ -45,6 +52,8 @@ const translations = {
   pt: {
     darkMode: "Modo Escuro",
     lightMode: "Modo Claro",
+    signIn: "Logar",
+    signOut: "Sair",
     addTask: "Adicionar",
     searchPlaceholder: "Buscar tarefa...",
     clearCompleted: "Limpar concluídas",
@@ -142,6 +151,16 @@ export default function TodoApp() {
     return matches;
   });
 
+  const [user, setUser] = useState({});
+  const [openLoginModal, setOpenLoginModal] = useState(false);
+
+  const toggleLoginModal = () => {
+    setOpenLoginModal((prev) => !prev);
+  };
+
+  const HEADER_ZINDEX = new FixedZIndex(10);
+  const zIndex = new CompositeZIndex([HEADER_ZINDEX]);
+
   // Renderização
   return (
     <ColorSchemeProvider colorScheme={theme}>
@@ -187,10 +206,38 @@ export default function TodoApp() {
                   <SelectList.Option label="Português" value="pt" />
                   <SelectList.Option label="English" value="en" />
                 </SelectList>
+                <Button
+                  text={
+                    user?.email
+                      ? translations[language].signOut
+                      : translations[language].signIn
+                  }
+                  color="white"
+                  iconEnd="person"
+                  onClick={toggleLoginModal}
+                />
               </ButtonGroup>
             ),
           }}
         />
+        {/* Modal de Login */}
+        {openLoginModal && (
+          <Layer zIndex={zIndex}>
+            <Modal
+              closeOnOutsideClick
+              accessibilityModalLabel="View default padding and styling"
+              footer={<Heading size="600">Footer</Heading>}
+              heading="Small modal"
+              onDismiss={() => {
+                // dispatch({ type: "none" });
+              }}
+              size="sm"
+            >
+              <Heading size="600">Children</Heading>
+            </Modal>
+          </Layer>
+        )}
+
         {/* Adicionar Tarefa */}
         <Box
           marginTop={4}
