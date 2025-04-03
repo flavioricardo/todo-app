@@ -17,11 +17,13 @@ import {
   Heading,
   IconButton,
   Image,
+  Label,
   Layer,
   Modal,
   PageHeader,
   SearchField,
   SelectList,
+  Text,
   TextField,
   Toast,
   Tooltip,
@@ -55,7 +57,7 @@ const translations = {
     clearCompleted: "Clear Completed",
     taskList: "Task List:",
     addTaskPlaceholder: "Add a task",
-    filterPlaceholder: "Filter tasks...",
+    filterPlaceholder: "Filter tasks",
     all: "All",
     completed: "Completed",
     pending: "Pending",
@@ -80,7 +82,7 @@ const translations = {
     clearCompleted: "Limpar concluídas",
     taskList: "Lista de tarefas:",
     addTaskPlaceholder: "Adicione uma tarefa",
-    filterPlaceholder: "Filtrar tarefas...",
+    filterPlaceholder: "Filtrar tarefas",
     all: "Todas",
     completed: "Concluídas",
     pending: "Pendentes",
@@ -462,9 +464,15 @@ export default function TodoApp() {
             width="100%"
             display="flex"
             justifyContent={isMobile ? "between" : "start"}
+            alignItems={isMobile ? "stretch" : "center"}
             direction={isMobile ? "column" : "row"}
             gap={isMobile ? 4 : 2}
           >
+            <Box paddingX={isMobile ? 0 : 2} marginBottom={isMobile ? 4 : 0}>
+              <Label htmlFor="searchField">
+                <Text>{translations[language].filterPlaceholder}</Text>
+              </Label>
+            </Box>
             <Box paddingX={0} marginBottom={isMobile ? 4 : 0}>
               <SearchField
                 accessibilityLabel={translations[language].searchPlaceholder}
@@ -475,7 +483,7 @@ export default function TodoApp() {
                 size={isMobile ? "lg" : "md"}
               />
             </Box>
-            <Box paddingX={2}>
+            <Box paddingX={isMobile ? 0 : 2}>
               <SelectList
                 id="filterStatus"
                 onChange={({ value }) => setFilterStatus(value)}
@@ -524,17 +532,18 @@ export default function TodoApp() {
           </Box>
 
           {/* Clear Completed Button */}
-          {tasks.some((task) => task.completed) && (
-            <Box marginTop={4} width="100%" display="flex">
-              <Button
-                text={translations[language].clearCompleted}
-                onClick={clearCompletedTasks}
-                color="red"
-                fullWidth={isMobile}
-                size={isMobile ? "lg" : "md"}
-              />
-            </Box>
-          )}
+          {tasks.some((task) => task.completed) &&
+            filterStatus !== "pending" && (
+              <Box marginTop={4} width="100%" display="flex">
+                <Button
+                  text={translations[language].clearCompleted}
+                  onClick={clearCompletedTasks}
+                  color="red"
+                  fullWidth={isMobile}
+                  size={isMobile ? "lg" : "md"}
+                />
+              </Box>
+            )}
 
           {/* Toast */}
           {showToast && (
