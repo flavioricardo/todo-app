@@ -5,6 +5,8 @@ import {
   CompositeZIndex,
   DeviceTypeProvider,
   FixedZIndex,
+  Spinner,
+  Flex,
 } from "gestalt";
 import "gestalt/dist/gestalt.css";
 
@@ -29,17 +31,20 @@ import TaskToast from "./components/TaskToast";
 // Local imports
 import { storage } from "./utils/storage";
 import useIsMobile from "./utils/useIsMobile";
+import { taskService } from "./services/taskService";
 
 export default function TodoApp() {
   // Basic app state
   const [theme, setTheme] = useState(storage.get("theme", "lightWash"));
   const [language, setLanguage] = useState(storage.get("language", "pt"));
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
   // Task management state
-  const [tasks, setTasks] = useState(storage.get("tasks", []));
+  const [tasks, setTasks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Authentication state
   const [user, setUser] = useState(null);
@@ -54,17 +59,59 @@ export default function TodoApp() {
   // Persistence effects
   useEffect(() => storage.set("theme", theme), [theme]);
   useEffect(() => storage.set("language", language), [language]);
-  useEffect(() => storage.set("tasks", tasks), [tasks]);
 
-  // Auth listener
+  // Inicialização - Carregar tarefas do localStorage quando não há usuário
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, setUser);
+    if (!user) {
+      const localTasks = storage.get("tasks", []);
+      setTasks(localTasks);
+    }
+  }, []);
+
+  // Auth listener e sincronização de tarefas
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+
+      if (currentUser) {
+        // Usuário logado - sincronizar tarefas
+        try {
+          setIsLoading(true);
+          const syncedTasks = await taskService.syncTasks(currentUser.uid);
+          setTasks(syncedTasks);
+          storage.set("tasks", syncedTasks);
+
+          showToastMessage("Tarefas sincronizadas com sucesso!");
+        } catch (error) {
+          console.error("Erro ao sincronizar tarefas:", error);
+          showToastMessage("Erro ao sincronizar tarefas");
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    });
+
     return () => unsubscribe();
   }, []);
+
+  // Salvar tarefas no localStorage
+  // Agora apenas fazemos isso quando não há usuário logado
+  useEffect(() => {
+    if (!user) {
+      storage.set("tasks", tasks);
+    }
+  }, [tasks, user]);
 
   // Theme toggle
   const toggleTheme = () =>
     setTheme((prev) => (prev === "lightWash" ? "dark" : "lightWash"));
+
+  // Toast helper
+  const showToastMessage = (message) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
 
   // Auth handlers
   const handleLoginEmail = async (email, password) => {
@@ -92,36 +139,99 @@ export default function TodoApp() {
   };
 
   const handleSignOut = async () => {
-    await signOut(auth);
-    setUser(null);
+    try {
+      await signOut(auth);
+      setUser(null);
+
+      // Carregar tarefas do localStorage novamente
+      const localTasks = storage.get("tasks", []);
+      setTasks(localTasks);
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+    }
   };
 
   // Task handlers
-  const addTask = (taskText, taskCategory) => {
-    const newTasks = [
-      ...tasks,
-      {
-        id: Date.now().toString(),
-        text: taskText,
-        category: taskCategory,
-        completed: false,
-      },
-    ];
-    setTasks(newTasks);
+  const addTask = async (taskText, taskCategory) => {
+    const newTask = {
+      id: Date.now().toString(),
+      text: taskText,
+      category: taskCategory,
+      completed: false,
+    };
+
+    try {
+      if (user) {
+        // Usuário logado - salvar no Firebase
+        setIsLoading(true);
+        const savedTask = await taskService.addTask(newTask, user.uid);
+        setTasks((prevTasks) => [...prevTasks, savedTask]);
+      } else {
+        // Usuário não logado - salvar apenas localmente
+        setTasks((prevTasks) => [...prevTasks, newTask]);
+      }
+    } catch (error) {
+      console.error("Erro ao adicionar tarefa:", error);
+      showToastMessage("Erro ao adicionar tarefa");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const toggleTaskCompletion = (taskId) => {
-    const updated = tasks.map((task) =>
-      task.id === taskId ? { ...task, completed: !task.completed } : task
-    );
-    setTasks(updated);
+  const toggleTaskCompletion = async (taskId) => {
+    try {
+      const taskToUpdate = tasks.find((task) => task.id === taskId);
+      if (!taskToUpdate) return;
+
+      const updatedTask = {
+        ...taskToUpdate,
+        completed: !taskToUpdate.completed,
+      };
+
+      if (user && updatedTask.firebaseId) {
+        // Usuário logado e tarefa já existe no Firebase
+        setIsLoading(true);
+        await taskService.updateTask(updatedTask, user.uid);
+      }
+
+      // Atualizar estado local de qualquer maneira
+      const updated = tasks.map((task) =>
+        task.id === taskId ? updatedTask : task
+      );
+
+      setTasks(updated);
+    } catch (error) {
+      console.error("Erro ao atualizar tarefa:", error);
+      showToastMessage("Erro ao atualizar tarefa");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const clearCompletedTasks = () => {
-    const remaining = tasks.filter((t) => !t.completed);
-    setTasks(remaining);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+  const clearCompletedTasks = async () => {
+    try {
+      const completedTasks = tasks.filter((t) => t.completed);
+      const remainingTasks = tasks.filter((t) => !t.completed);
+
+      if (user) {
+        // Usuário logado - excluir do Firebase
+        setIsLoading(true);
+
+        for (const task of completedTasks) {
+          if (task.firebaseId) {
+            await taskService.deleteTask(task.firebaseId);
+          }
+        }
+      }
+
+      setTasks(remainingTasks);
+      showToastMessage("Tarefas concluídas removidas com sucesso");
+    } catch (error) {
+      console.error("Erro ao limpar tarefas concluídas:", error);
+      showToastMessage("Erro ao limpar tarefas concluídas");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Filter tasks
@@ -172,6 +282,7 @@ export default function TodoApp() {
             onAddTask={addTask}
             language={language}
             isMobile={isMobile}
+            disabled={isLoading}
           />
 
           <TaskFilters
@@ -181,20 +292,27 @@ export default function TodoApp() {
             onFilterChange={setFilterStatus}
             language={language}
             isMobile={isMobile}
+            disabled={isLoading}
           />
 
-          <TaskList
-            tasks={filteredTasks}
-            onToggleTask={toggleTaskCompletion}
-            onClearCompleted={clearCompletedTasks}
-            filterStatus={filterStatus}
-            language={language}
-            isMobile={isMobile}
-          />
+          {isLoading ? (
+            <Flex alignItems="center" justifyContent="center" height="200px">
+              <Spinner show accessibilityLabel="Carregando tarefas" />
+            </Flex>
+          ) : (
+            <TaskList
+              tasks={filteredTasks}
+              onToggleTask={toggleTaskCompletion}
+              onClearCompleted={clearCompletedTasks}
+              filterStatus={filterStatus}
+              language={language}
+              isMobile={isMobile}
+            />
+          )}
 
           <TaskToast
             show={showToast}
-            message="clearCompleted"
+            message={toastMessage}
             onDismiss={() => setShowToast(false)}
             language={language}
           />

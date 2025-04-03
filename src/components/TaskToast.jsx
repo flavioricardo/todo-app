@@ -6,11 +6,13 @@ import PropTypes from "prop-types";
 export default function TaskToast({ show, message, onDismiss, language }) {
   if (!show) return null;
 
+  const text = translations[language][message] || message;
+
   return (
     <Flex alignItems="end" height="100%" justifyContent="center" width="100%">
       <Toast
         variant="success"
-        text={translations[language][message] || message}
+        text={text}
         dismissButton={{
           onDismiss: onDismiss,
         }}

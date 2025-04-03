@@ -4,7 +4,7 @@ import { translations } from "../constants/translations";
 import { categoryColors } from "../constants/categories";
 import PropTypes from "prop-types";
 
-export default function TaskForm({ onAddTask, language, isMobile }) {
+export default function TaskForm({ onAddTask, language, isMobile, disabled }) {
   const [task, setTask] = useState("");
   const [category, setCategory] = useState(Object.keys(categoryColors)[0]);
 
@@ -28,6 +28,7 @@ export default function TaskForm({ onAddTask, language, isMobile }) {
           id="categorySelect"
           onChange={({ value }) => setCategory(value)}
           size={isMobile ? "lg" : "md"}
+          disabled={disabled}
         >
           {Object.keys(categoryColors).map((value) => (
             <SelectList.Option
@@ -52,6 +53,7 @@ export default function TaskForm({ onAddTask, language, isMobile }) {
           value={task}
           width="100%"
           size={isMobile ? "lg" : "md"}
+          disabled={disabled}
         />
       </Box>
 
@@ -61,6 +63,7 @@ export default function TaskForm({ onAddTask, language, isMobile }) {
         color="blue"
         fullWidth={isMobile}
         size={isMobile ? "lg" : "md"}
+        disabled={disabled || !task}
       />
     </Box>
   );
@@ -70,4 +73,9 @@ TaskForm.propTypes = {
   onAddTask: PropTypes.func.isRequired,
   language: PropTypes.string.isRequired,
   isMobile: PropTypes.bool,
+  disabled: PropTypes.bool,
+};
+
+TaskForm.defaultProps = {
+  disabled: false,
 };

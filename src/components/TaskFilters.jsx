@@ -10,6 +10,7 @@ export default function TaskFilters({
   onFilterChange,
   language,
   isMobile,
+  disabled,
 }) {
   return (
     <Box
@@ -32,6 +33,7 @@ export default function TaskFilters({
           placeholder={translations[language].searchPlaceholder}
           value={searchTerm}
           size={isMobile ? "lg" : "md"}
+          disabled={disabled} // Adicionado aqui
         />
       </Box>
       <Box paddingX={isMobile ? 0 : 2}>
@@ -40,6 +42,7 @@ export default function TaskFilters({
           onChange={({ value }) => onFilterChange(value)}
           size={isMobile ? "lg" : "md"}
           value={filterStatus}
+          disabled={disabled} // Adicionado aqui
         >
           <SelectList.Option label={translations[language].all} value="all" />
           <SelectList.Option
@@ -63,4 +66,9 @@ TaskFilters.propTypes = {
   onFilterChange: PropTypes.func.isRequired,
   language: PropTypes.string.isRequired,
   isMobile: PropTypes.bool,
+  disabled: PropTypes.bool,
+};
+
+TaskFilters.defaultProps = {
+  disabled: false,
 };
