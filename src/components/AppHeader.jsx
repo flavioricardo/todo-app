@@ -1,7 +1,6 @@
-import React, { Fragment, useRef } from "react";
 import {
-  ButtonGroup,
   Button,
+  ButtonGroup,
   Dropdown,
   IconButton,
   Image,
@@ -9,8 +8,11 @@ import {
   SelectList,
   Tooltip,
 } from "gestalt";
-import { translations } from "../constants/translations";
+import React, { Fragment, useRef } from "react";
+
 import PropTypes from "prop-types";
+import logoImage from "../../public/logo512.png";
+import { translations } from "../constants/translations";
 
 export default function AppHeader({
   theme,
@@ -37,7 +39,7 @@ export default function AppHeader({
             fit="contain"
             naturalHeight={1}
             naturalWidth={1}
-            src="/logo512.png"
+            src={logoImage}
           />
         )
       }
