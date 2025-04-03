@@ -11,7 +11,7 @@ import {
 import React, { Fragment, useRef } from "react";
 
 import PropTypes from "prop-types";
-import logoImage from "../../public/logo512.png";
+import logoImage from "../assets/logo512.png";
 import { translations } from "../constants/translations";
 
 export default function AppHeader({
