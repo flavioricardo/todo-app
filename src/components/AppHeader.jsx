@@ -1,0 +1,151 @@
+import React, { Fragment, useRef } from "react";
+import {
+  ButtonGroup,
+  Button,
+  Dropdown,
+  IconButton,
+  Image,
+  PageHeader,
+  SelectList,
+  Tooltip,
+} from "gestalt";
+import { translations } from "../constants/translations";
+import PropTypes from "prop-types";
+
+export default function AppHeader({
+  theme,
+  language,
+  isMobile,
+  user,
+  toggleTheme,
+  setLanguage,
+  handleSignOut,
+  setOpenLoginModal,
+}) {
+  const [open, setOpen] = React.useState(false);
+  const anchorRef = useRef(null);
+
+  return (
+    <PageHeader
+      title="To-Do App"
+      borderStyle="none"
+      thumbnail={
+        !isMobile && (
+          <Image
+            alt="To-Do App"
+            key="logo"
+            fit="contain"
+            naturalHeight={1}
+            naturalWidth={1}
+            src="/logo512.png"
+          />
+        )
+      }
+      primaryAction={{
+        component: (
+          <ButtonGroup>
+            <Button
+              text={
+                theme === "lightWash"
+                  ? translations[language].darkMode
+                  : translations[language].lightMode
+              }
+              onClick={toggleTheme}
+            />
+            <SelectList
+              id="languageSelect"
+              value={language}
+              onChange={({ value }) => setLanguage(value)}
+            >
+              <SelectList.Option label="Português" value="pt" />
+              <SelectList.Option label="English" value="en" />
+            </SelectList>
+            <Button
+              text={
+                user?.email
+                  ? translations[language].signOut
+                  : translations[language].signIn
+              }
+              iconEnd="person"
+              color="white"
+              onClick={
+                user?.email ? handleSignOut : () => setOpenLoginModal(true)
+              }
+            />
+          </ButtonGroup>
+        ),
+      }}
+      dropdownAccessibilityLabel={translations[language].options}
+      secondaryAction={
+        isMobile && {
+          component: (
+            <Fragment>
+              <Tooltip
+                idealDirection="up"
+                text={translations[language].options}
+              >
+                <IconButton
+                  ref={anchorRef}
+                  accessibilityExpanded={open}
+                  accessibilityHaspopup
+                  accessibilityLabel={translations[language].options}
+                  icon="ellipsis"
+                  iconColor="darkGray"
+                  onClick={() => setOpen((prev) => !prev)}
+                  selected={open}
+                />
+              </Tooltip>
+            </Fragment>
+          ),
+          dropdownItems: [
+            <Dropdown.Item
+              key="set-language"
+              onSelect={() => setLanguage(language === "en" ? "pt" : "en")}
+              option={{
+                value: language,
+                label: language === "en" ? "English" : "Português",
+              }}
+              iconEnd="globe"
+            />,
+            <Dropdown.Item
+              key="set-theme"
+              onSelect={() => toggleTheme()}
+              option={{
+                value: language,
+                label:
+                  theme === "lightWash"
+                    ? translations[language].darkMode
+                    : translations[language].lightMode,
+              }}
+              iconEnd="globe"
+            />,
+            <Dropdown.Item
+              key="get-login"
+              onSelect={() =>
+                user?.email ? handleSignOut() : setOpenLoginModal(true)
+              }
+              option={{
+                value: "",
+                label: user?.email
+                  ? translations[language].signOut
+                  : translations[language].signIn,
+              }}
+              iconEnd="person"
+            />,
+          ],
+        }
+      }
+    />
+  );
+}
+
+AppHeader.propTypes = {
+  theme: PropTypes.string.isRequired,
+  language: PropTypes.string.isRequired,
+  isMobile: PropTypes.bool,
+  user: PropTypes.object,
+  toggleTheme: PropTypes.func.isRequired,
+  setLanguage: PropTypes.func.isRequired,
+  handleSignOut: PropTypes.func.isRequired,
+  setOpenLoginModal: PropTypes.func.isRequired,
+};
