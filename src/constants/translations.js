@@ -14,6 +14,11 @@ export const translations = {
     all: "All",
     completed: "Completed",
     pending: "Pending",
+    loadingTasks: "Loading tasks",
+    syncData: "Sync Data",
+    syncSuccess: "Tasks synchronized successfully!",
+    syncError: "Error synchronizing tasks",
+    needLogin: "Please login to synchronize tasks",
     categories: {
       personal_care: "Care",
       meal: "Meal",
@@ -39,6 +44,11 @@ export const translations = {
     all: "Todas",
     completed: "Concluídas",
     pending: "Pendentes",
+    loadingTasks: "Carregando tarefas",
+    syncData: "Sincronizar dados",
+    syncSuccess: "Tarefas sincronizadas com sucesso!",
+    syncError: "Erro ao sincronizar tarefas",
+    needLogin: "Por favor, faça login para sincronizar tarefas",
     categories: {
       personal_care: "Cuidado",
       meal: "Refeição",

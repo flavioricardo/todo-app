@@ -23,6 +23,7 @@ export default function AppHeader({
   setLanguage,
   handleSignOut,
   setOpenLoginModal,
+  syncData,
 }) {
   const [open, setOpen] = React.useState(false);
   const anchorRef = useRef(null);
@@ -62,6 +63,13 @@ export default function AppHeader({
               <SelectList.Option label="Português" value="pt" />
               <SelectList.Option label="English" value="en" />
             </SelectList>
+            <IconButton
+              size="sm"
+              icon="refresh"
+              padding={3}
+              tooltip={{ text: translations[language].syncData }}
+              onClick={syncData}
+            />
             <Button
               text={
                 user?.email
@@ -69,7 +77,6 @@ export default function AppHeader({
                   : translations[language].signIn
               }
               iconEnd="person"
-              color="white"
               onClick={
                 user?.email ? handleSignOut : () => setOpenLoginModal(true)
               }
@@ -122,6 +129,11 @@ export default function AppHeader({
               iconEnd="globe"
             />,
             <Dropdown.Item
+              key="sync-data"
+              option={{ value: "", label: translations[language].syncData }}
+              onSelect={syncData}
+            />,
+            <Dropdown.Item
               key="get-login"
               onSelect={() =>
                 user?.email ? handleSignOut() : setOpenLoginModal(true)
@@ -150,4 +162,5 @@ AppHeader.propTypes = {
   setLanguage: PropTypes.func.isRequired,
   handleSignOut: PropTypes.func.isRequired,
   setOpenLoginModal: PropTypes.func.isRequired,
+  syncData: PropTypes.func.isRequired,
 };

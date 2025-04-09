@@ -1,17 +1,15 @@
-import React, { useState, useEffect } from "react";
+import "gestalt/dist/gestalt.css";
+
 import {
   Box,
   ColorSchemeProvider,
   CompositeZIndex,
   DeviceTypeProvider,
   FixedZIndex,
-  Spinner,
   Flex,
+  Spinner,
 } from "gestalt";
-import "gestalt/dist/gestalt.css";
-
 // Firebase imports
-import { auth } from "./firebase";
 import {
   GoogleAuthProvider,
   onAuthStateChanged,
@@ -19,19 +17,21 @@ import {
   signInWithPopup,
   signOut,
 } from "firebase/auth";
+import React, { useEffect, useState } from "react";
 
 // Components
 import AppHeader from "./components/AppHeader";
 import LoginModal from "./components/LoginModal";
-import TaskForm from "./components/TaskForm";
 import TaskFilters from "./components/TaskFilters";
+import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
 import TaskToast from "./components/TaskToast";
-
-// Local imports
+import { auth } from "./firebase";
 import { storage } from "./utils/storage";
-import useIsMobile from "./utils/useIsMobile";
 import { taskService } from "./services/taskService";
+// Local imports
+import { translations } from "./constants/translations";
+import useIsMobile from "./utils/useIsMobile";
 
 export default function TodoApp() {
   // Basic app state
@@ -60,7 +60,7 @@ export default function TodoApp() {
   useEffect(() => storage.set("theme", theme), [theme]);
   useEffect(() => storage.set("language", language), [language]);
 
-  // Inicialização - Carregar tarefas do localStorage quando não há usuário
+  // Carregar tarefas do localStorage quando não há usuário
   useEffect(() => {
     if (!user) {
       const localTasks = storage.get("tasks", []);
@@ -74,9 +74,8 @@ export default function TodoApp() {
       setUser(currentUser);
 
       if (currentUser) {
-        // Usuário logado - sincronizar tarefas
+        setIsLoading(true);
         try {
-          setIsLoading(true);
           const syncedTasks = await taskService.syncTasks(currentUser.uid);
           setTasks(syncedTasks);
           storage.set("tasks", syncedTasks);
@@ -128,6 +127,28 @@ export default function TodoApp() {
     }
   };
 
+  // Função para sincronizar tarefas com o Firebase
+  const syncData = async () => {
+    if (!user) {
+      showToastMessage(translations[language].needLogin);
+      setOpenLoginModal(true);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const syncedTasks = await taskService.syncTasks(user.uid);
+      setTasks(syncedTasks);
+      storage.set("tasks", syncedTasks);
+      showToastMessage(translations[language].syncSuccess);
+    } catch (error) {
+      console.error("Erro ao sincronizar tarefas:", error);
+      showToastMessage(translations[language].syncError);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleLoginGoogle = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
@@ -160,6 +181,7 @@ export default function TodoApp() {
       completed: false,
     };
 
+    setIsLoading(true);
     try {
       if (user) {
         // Usuário logado - salvar no Firebase
@@ -265,6 +287,7 @@ export default function TodoApp() {
             setLanguage={setLanguage}
             handleSignOut={handleSignOut}
             setOpenLoginModal={setOpenLoginModal}
+            syncData={syncData}
           />
 
           <LoginModal
@@ -297,7 +320,10 @@ export default function TodoApp() {
 
           {isLoading ? (
             <Flex alignItems="center" justifyContent="center" height="200px">
-              <Spinner show accessibilityLabel="Carregando tarefas" />
+              <Spinner
+                show
+                accessibilityLabel={translations[language].loadingTasks}
+              />
             </Flex>
           ) : (
             <TaskList
