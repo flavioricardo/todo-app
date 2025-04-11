@@ -1,19 +1,19 @@
 import "gestalt/dist/gestalt.css";
 
 import {
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-} from "firebase/auth";
-import {
   Box,
   ColorSchemeProvider,
   DeviceTypeProvider,
   Flex,
   Spinner,
 } from "gestalt";
+import {
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+} from "firebase/auth";
 import React, { useEffect, useState } from "react";
 
 import AppHeader from "./components/AppHeader";
@@ -22,13 +22,13 @@ import TaskFilters from "./components/TaskFilters";
 import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
 import TaskToast from "./components/TaskToast";
-import { translations } from "./constants/translations";
 import { auth } from "./firebase";
-import { taskService } from "./services/taskService";
-import { userPreferencesService } from "./services/userPreferencesService";
-import { storage } from "./utils/storage";
-import useIsMobile from "./utils/useIsMobile";
 import { categoryService } from "./services/categoryService";
+import { storage } from "./utils/storage";
+import { taskService } from "./services/taskService";
+import { translations } from "./constants/translations";
+import useIsMobile from "./utils/useIsMobile";
+import { userPreferencesService } from "./services/userPreferencesService";
 
 export default function TodoApp() {
   const [theme, setTheme] = useState(storage.get("theme", "lightWash"));

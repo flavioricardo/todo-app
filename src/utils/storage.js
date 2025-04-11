@@ -32,6 +32,14 @@ export const storage = {
     if (!categories.includes(category)) {
       categories.push(category);
       this.set("customCategories", categories);
+
+      const categoriesOrder = this.getCategoriesOrder();
+      const maxOrder = Object.values(categoriesOrder).reduce(
+        (max, order) => Math.max(max, order),
+        0
+      );
+      categoriesOrder[category] = maxOrder + 1;
+      this.set("categoriesOrder", categoriesOrder);
     }
     return categories;
   },
@@ -44,6 +52,22 @@ export const storage = {
     const categories = this.getCustomCategories();
     const updatedCategories = categories.filter((cat) => cat !== category);
     this.set("customCategories", updatedCategories);
+
+    const categoriesOrder = this.getCategoriesOrder();
+    delete categoriesOrder[category];
+    this.set("categoriesOrder", categoriesOrder);
+
     return updatedCategories;
+  },
+
+  getCategoriesOrder() {
+    return this.get("categoriesOrder", {});
+  },
+
+  setCategoryOrder(category, order) {
+    const categoriesOrder = this.getCategoriesOrder();
+    categoriesOrder[category] = order;
+    this.set("categoriesOrder", categoriesOrder);
+    return categoriesOrder;
   },
 };

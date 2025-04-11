@@ -22,13 +22,23 @@ export const categoryService = {
       const querySnapshot = await getDocs(q);
 
       const categories = [];
+      const categoriesOrder = {};
+
       querySnapshot.forEach((doc) => {
-        categories.push(doc.data().name);
+        const data = doc.data();
+        categories.push(data.name);
+        if (data.order !== undefined) {
+          categoriesOrder[data.name] = data.order;
+        } else {
+          categoriesOrder[data.name] = 999;
+        }
       });
 
       if (categories.length === 0) {
         return storage.getCustomCategories();
       }
+
+      storage.set("categoriesOrder", categoriesOrder);
 
       return categories;
     } catch (error) {
@@ -39,16 +49,25 @@ export const categoryService = {
 
   async addCustomCategory(userId, category) {
     try {
+      const categoriesOrder = storage.getCategoriesOrder();
+      const maxOrder = Object.values(categoriesOrder).reduce(
+        (max, order) => Math.max(max, order),
+        0
+      );
+      const newOrder = maxOrder + 1;
+
       const categoryDoc = doc(db, COLLECTION_NAME, `${userId}_${category}`);
       await setDoc(categoryDoc, {
         userId,
         name: category,
+        order: newOrder,
         createdAt: serverTimestamp(),
       });
 
       const existingCategories = storage.getCustomCategories();
       if (!existingCategories.includes(category)) {
         storage.set("customCategories", [...existingCategories, category]);
+        storage.setCategoryOrder(category, newOrder);
       }
 
       return await this.getUserCategories(userId);
@@ -69,10 +88,39 @@ export const categoryService = {
         existingCategories.filter((cat) => cat !== category)
       );
 
+      const categoriesOrder = storage.getCategoriesOrder();
+      delete categoriesOrder[category];
+      storage.set("categoriesOrder", categoriesOrder);
+
       return await this.getUserCategories(userId);
     } catch (error) {
       console.error("Error removing custom category:", error);
       throw error;
     }
+  },
+
+  getCategoryOrderMap() {
+    const defaultOrder = {
+      personal_care: 10,
+      meal: 20,
+      work: 30,
+      household_chores: 40,
+      transportation: 50,
+      physical_activity: 60,
+      social_interaction: 70,
+    };
+
+    const customOrders = storage.getCategoriesOrder();
+    return { ...defaultOrder, ...customOrders };
+  },
+
+  sortCategoriesByOrder(categories) {
+    const orderMap = this.getCategoryOrderMap();
+
+    return [...categories].sort((a, b) => {
+      const orderA = orderMap[a] !== undefined ? orderMap[a] : 999;
+      const orderB = orderMap[b] !== undefined ? orderMap[b] : 999;
+      return orderA - orderB;
+    });
   },
 };

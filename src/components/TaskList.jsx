@@ -2,6 +2,7 @@ import { Badge, Box, Button, Checkbox, IconButton, Text } from "gestalt";
 import React, { useState } from "react";
 
 import PropTypes from "prop-types";
+import { categoryService } from "../services/categoryService";
 import { getCategoryColor } from "../constants/categories";
 import { translations } from "../constants/translations";
 
@@ -15,7 +16,7 @@ const TaskItem = ({ task, onToggleTask, showCategory, language }) => (
     />
     {showCategory && (
       <Badge
-        text={translations[language].categories[task.category]}
+        text={translations[language].categories[task.category] || task.category}
         type={getCategoryColor(task.category)}
       />
     )}
@@ -124,20 +125,22 @@ export default function TaskList({
     if (groupBy === "category") {
       const tasksByCategory = getTasksByCategory();
 
-      return Object.entries(tasksByCategory).map(
-        ([category, categoryTasks]) => (
-          <CategoryGroup
-            key={category}
-            category={category}
-            tasks={categoryTasks}
-            onToggleTask={onToggleTask}
-            language={language}
-            isMobile={isMobile}
-            isExpanded={expandedCategories.includes(category)}
-            onToggleExpand={toggleCategoryExpand}
-          />
-        )
+      const orderedCategories = categoryService.sortCategoriesByOrder(
+        Object.keys(tasksByCategory)
       );
+
+      return orderedCategories.map((category) => (
+        <CategoryGroup
+          key={category}
+          category={category}
+          tasks={tasksByCategory[category]}
+          onToggleTask={onToggleTask}
+          language={language}
+          isMobile={isMobile}
+          isExpanded={expandedCategories.includes(category)}
+          onToggleExpand={toggleCategoryExpand}
+        />
+      ));
     }
 
     return tasks.map((task) => (
