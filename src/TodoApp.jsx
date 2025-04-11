@@ -27,8 +27,9 @@ import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
 import TaskToast from "./components/TaskToast";
 import { auth } from "./firebase";
-import { storage } from "./utils/storage";
 import { taskService } from "./services/taskService";
+import { userPreferencesService } from "./services/userPreferencesService";
+import { storage } from "./utils/storage";
 // Local imports
 import { translations } from "./constants/translations";
 import useIsMobile from "./utils/useIsMobile";
@@ -57,8 +58,20 @@ export default function TodoApp() {
   const zIndex = new CompositeZIndex([HEADER_ZINDEX]);
 
   // Persistence effects
-  useEffect(() => storage.set("theme", theme), [theme]);
-  useEffect(() => storage.set("language", language), [language]);
+  // Atualizado para salvar no Firebase quando usuário estiver logado
+  useEffect(() => {
+    if (user) {
+      userPreferencesService.updatePreference(user.uid, "theme", theme);
+    }
+    storage.set("theme", theme);
+  }, [theme, user]);
+
+  useEffect(() => {
+    if (user) {
+      userPreferencesService.updatePreference(user.uid, "language", language);
+    }
+    storage.set("language", language);
+  }, [language, user]);
 
   // Carregar tarefas do localStorage quando não há usuário
   useEffect(() => {
@@ -68,7 +81,7 @@ export default function TodoApp() {
     }
   }, []);
 
-  // Auth listener e sincronização de tarefas
+  // Auth listener e sincronização de tarefas e preferências
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
@@ -76,14 +89,24 @@ export default function TodoApp() {
       if (currentUser) {
         setIsLoading(true);
         try {
+          // Sincronizar tarefas
           const syncedTasks = await taskService.syncTasks(currentUser.uid);
           setTasks(syncedTasks);
           storage.set("tasks", syncedTasks);
 
-          showToastMessage("Tarefas sincronizadas com sucesso!");
+          // Carregar preferências do usuário
+          const userPrefs = await userPreferencesService.getUserPreferences(
+            currentUser.uid
+          );
+          if (userPrefs) {
+            if (userPrefs.theme) setTheme(userPrefs.theme);
+            if (userPrefs.language) setLanguage(userPrefs.language);
+          }
+
+          showToastMessage("Tarefas e preferências sincronizadas com sucesso!");
         } catch (error) {
-          console.error("Erro ao sincronizar tarefas:", error);
-          showToastMessage("Erro ao sincronizar tarefas");
+          console.error("Erro ao sincronizar dados:", error);
+          showToastMessage("Erro ao sincronizar dados");
         } finally {
           setIsLoading(false);
         }
@@ -102,8 +125,15 @@ export default function TodoApp() {
   }, [tasks, user]);
 
   // Theme toggle
-  const toggleTheme = () =>
-    setTheme((prev) => (prev === "lightWash" ? "dark" : "lightWash"));
+  const toggleTheme = () => {
+    const newTheme = theme === "lightWash" ? "dark" : "lightWash";
+    setTheme(newTheme);
+  };
+
+  // Language setter
+  const handleLanguageChange = (newLanguage) => {
+    setLanguage(newLanguage);
+  };
 
   // Toast helper
   const showToastMessage = (message) => {
@@ -137,12 +167,20 @@ export default function TodoApp() {
 
     setIsLoading(true);
     try {
+      // Sincronizar tarefas
       const syncedTasks = await taskService.syncTasks(user.uid);
       setTasks(syncedTasks);
       storage.set("tasks", syncedTasks);
+
+      // Sincronizar preferências
+      await userPreferencesService.saveUserPreferences(user.uid, {
+        theme,
+        language,
+      });
+
       showToastMessage(translations[language].syncSuccess);
     } catch (error) {
-      console.error("Erro ao sincronizar tarefas:", error);
+      console.error("Erro ao sincronizar dados:", error);
       showToastMessage(translations[language].syncError);
     } finally {
       setIsLoading(false);
@@ -284,7 +322,7 @@ export default function TodoApp() {
             isMobile={isMobile}
             user={user}
             toggleTheme={toggleTheme}
-            setLanguage={setLanguage}
+            setLanguage={handleLanguageChange}
             handleSignOut={handleSignOut}
             setOpenLoginModal={setOpenLoginModal}
             syncData={syncData}
