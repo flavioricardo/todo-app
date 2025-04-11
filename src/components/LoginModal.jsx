@@ -76,7 +76,11 @@ export default function LoginModal({
               />
             </Flex>
           )}
-          {user?.email && <Heading size="400">Welcome, {user.email}</Heading>}
+          {user?.email && (
+            <Heading size="400">
+              {translations[language].welcome}, {user.email}
+            </Heading>
+          )}
         </Box>
       </Modal>
     </Layer>
