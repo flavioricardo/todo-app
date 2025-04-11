@@ -1,22 +1,23 @@
 import {
-  collection,
   addDoc,
-  updateDoc,
+  collection,
   deleteDoc,
   doc,
   getDocs,
   query,
+  serverTimestamp,
+  updateDoc,
   where,
   writeBatch,
-  serverTimestamp,
 } from "firebase/firestore";
+
 import { db } from "../firebase";
 import { storage } from "../utils/storage";
 
 const COLLECTION_NAME = "tasks";
 
 export const taskService = {
-  // Obter todas as tarefas do usuário
+  // Get all user tasks
   async getUserTasks(userId) {
     try {
       const tasksQuery = query(
@@ -36,12 +37,12 @@ export const taskService = {
 
       return tasks;
     } catch (error) {
-      console.error("Erro ao obter tarefas:", error);
+      console.error("Error fetching tasks:", error);
       throw error;
     }
   },
 
-  // Adicionar uma nova tarefa
+  // Add new task
   async addTask(task, userId) {
     try {
       const taskWithMeta = {
@@ -57,17 +58,17 @@ export const taskService = {
       );
       return { ...task, id: docRef.id, firebaseId: docRef.id };
     } catch (error) {
-      console.error("Erro ao adicionar tarefa:", error);
+      console.error("Error adding task:", error);
       throw error;
     }
   },
 
-  // Atualizar uma tarefa existente
+  // Update existing task
   async updateTask(task, userId) {
     try {
       const { firebaseId } = task;
       if (!firebaseId) {
-        throw new Error("ID do Firebase ausente");
+        throw new Error("Firebase ID missing");
       }
 
       const taskRef = doc(db, COLLECTION_NAME, firebaseId);
@@ -79,37 +80,37 @@ export const taskService = {
 
       return task;
     } catch (error) {
-      console.error("Erro ao atualizar tarefa:", error);
+      console.error("Error updating task:", error);
       throw error;
     }
   },
 
-  // Excluir uma tarefa
+  // Delete task
   async deleteTask(taskId) {
     try {
       await deleteDoc(doc(db, COLLECTION_NAME, taskId));
       return taskId;
     } catch (error) {
-      console.error("Erro ao excluir tarefa:", error);
+      console.error("Error deleting task:", error);
       throw error;
     }
   },
 
-  // Sincronizar tarefas locais com o Firestore quando o usuário faz login
+  // Sync local tasks with Firestore when user logs in
   async syncTasks(userId) {
     try {
-      // Obter tarefas locais
+      // Get local tasks
       const localTasks = storage.get("tasks", []);
 
-      // Se não houver tarefas locais, apenas carregar do Firebase
+      // If no local tasks, just load from Firebase
       if (localTasks.length === 0) {
         return await this.getUserTasks(userId);
       }
 
-      // Obter tarefas remotas
+      // Get remote tasks
       const remoteTasks = await this.getUserTasks(userId);
 
-      // Comparar e mesclar tarefas
+      // Compare and merge tasks
       const batch = writeBatch(db);
       const tasksToAdd = localTasks.filter(
         (localTask) =>
@@ -117,7 +118,7 @@ export const taskService = {
           !remoteTasks.some((remoteTask) => remoteTask.id === localTask.id)
       );
 
-      // Adicionar novas tarefas em lote
+      // Add new tasks in batch
       for (const task of tasksToAdd) {
         const taskWithMeta = {
           ...task,
@@ -131,10 +132,10 @@ export const taskService = {
         task.firebaseId = docRef.id;
       }
 
-      // Commit das alterações em lote
+      // Commit batch changes
       await batch.commit();
 
-      // Mesclar tarefas remotas e locais
+      // Merge remote and local tasks
       const mergedTasks = [...remoteTasks];
 
       for (const localTask of localTasks) {
@@ -152,19 +153,19 @@ export const taskService = {
 
       return mergedTasks;
     } catch (error) {
-      console.error("Erro ao sincronizar tarefas:", error);
+      console.error("Error syncing tasks:", error);
       throw error;
     }
   },
 
-  // Sincronizar uma lista completa de tarefas
+  // Sync complete task list
   async syncTaskList(tasks, userId) {
     try {
       const batch = writeBatch(db);
 
       for (const task of tasks) {
         if (task.firebaseId) {
-          // Atualizar tarefa existente
+          // Update existing task
           const taskRef = doc(db, COLLECTION_NAME, task.firebaseId);
           batch.update(taskRef, {
             ...task,
@@ -172,7 +173,7 @@ export const taskService = {
             updatedAt: serverTimestamp(),
           });
         } else {
-          // Adicionar nova tarefa
+          // Add new task
           const taskWithMeta = {
             ...task,
             userId,
@@ -189,7 +190,7 @@ export const taskService = {
       await batch.commit();
       return tasks;
     } catch (error) {
-      console.error("Erro ao sincronizar lista de tarefas:", error);
+      console.error("Error syncing task list:", error);
       throw error;
     }
   },

@@ -5,7 +5,7 @@ export const storage = {
     try {
       localStorage.setItem(`${PREFIX}${key}`, JSON.stringify(value));
     } catch (e) {
-      console.error("Erro ao salvar no localStorage:", e);
+      console.error("Error saving to localStorage:", e);
     }
   },
 
@@ -14,7 +14,7 @@ export const storage = {
       const stored = localStorage.getItem(`${PREFIX}${key}`);
       return stored ? JSON.parse(stored) : defaultValue;
     } catch (e) {
-      console.error("Erro ao ler do localStorage:", e);
+      console.error("Error reading from localStorage:", e);
       return defaultValue;
     }
   },
@@ -23,7 +23,7 @@ export const storage = {
     try {
       localStorage.removeItem(`${PREFIX}${key}`);
     } catch (e) {
-      console.error("Erro ao remover do localStorage:", e);
+      console.error("Error removing from localStorage:", e);
     }
   },
 };

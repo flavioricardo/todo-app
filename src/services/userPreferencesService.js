@@ -1,11 +1,12 @@
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+
 import { db } from "../firebase";
 import { storage } from "../utils/storage";
 
 const COLLECTION_NAME = "users";
 
 export const userPreferencesService = {
-  // Obter preferências do usuário
+  // Get user preferences
   async getUserPreferences(userId) {
     try {
       const userPrefsRef = doc(db, COLLECTION_NAME, userId);
@@ -14,19 +15,19 @@ export const userPreferencesService = {
       if (docSnap.exists()) {
         return docSnap.data();
       } else {
-        // Se não existir, retorna valores padrão
+        // Return defaults if not exists
         return {
           theme: storage.get("theme", "lightWash"),
           language: storage.get("language", "pt"),
         };
       }
     } catch (error) {
-      console.error("Erro ao obter preferências do usuário:", error);
+      console.error("Error getting user preferences:", error);
       throw error;
     }
   },
 
-  // Salvar preferências do usuário
+  // Save user preferences
   async saveUserPreferences(userId, preferences) {
     try {
       const userPrefsRef = doc(db, COLLECTION_NAME, userId);
@@ -41,12 +42,12 @@ export const userPreferencesService = {
 
       return preferences;
     } catch (error) {
-      console.error("Erro ao salvar preferências do usuário:", error);
+      console.error("Error saving user preferences:", error);
       throw error;
     }
   },
 
-  // Atualizar uma única preferência
+  // Update single preference
   async updatePreference(userId, key, value) {
     try {
       const userPrefsRef = doc(db, COLLECTION_NAME, userId);
@@ -61,7 +62,7 @@ export const userPreferencesService = {
 
       return { [key]: value };
     } catch (error) {
-      console.error(`Erro ao atualizar preferência ${key}:`, error);
+      console.error(`Error updating preference ${key}:`, error);
       throw error;
     }
   },

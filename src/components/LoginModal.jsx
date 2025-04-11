@@ -1,16 +1,17 @@
-import React, { useState } from "react";
 import {
-  Button,
   Box,
+  Button,
+  CompositeZIndex,
   Flex,
   Heading,
   Layer,
   Modal,
   TextField,
-  CompositeZIndex,
 } from "gestalt";
-import { translations } from "../constants/translations";
+import React, { useState } from "react";
+
 import PropTypes from "prop-types";
+import { translations } from "../constants/translations";
 
 export default function LoginModal({
   isOpen,
@@ -75,7 +76,7 @@ export default function LoginModal({
               />
             </Flex>
           )}
-          {user?.email && <Heading size="400">Bem-vindo, {user.email}</Heading>}
+          {user?.email && <Heading size="400">Welcome, {user.email}</Heading>}
         </Box>
       </Modal>
     </Layer>
