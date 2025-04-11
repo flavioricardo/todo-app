@@ -63,13 +63,15 @@ export default function AppHeader({
               <SelectList.Option label="Português" value="pt" />
               <SelectList.Option label="English" value="en" />
             </SelectList>
-            <IconButton
-              size="sm"
-              icon="refresh"
-              padding={3}
-              tooltip={{ text: translations[language].syncData }}
-              onClick={syncData}
-            />
+            {user?.email && (
+              <IconButton
+                size="sm"
+                icon="refresh"
+                padding={3}
+                tooltip={{ text: translations[language].syncData }}
+                onClick={syncData}
+              />
+            )}
             <Button
               text={
                 user?.email

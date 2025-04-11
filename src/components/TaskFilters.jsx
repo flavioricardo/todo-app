@@ -19,6 +19,7 @@ export default function TaskFilters({
       display="flex"
       direction={isMobile ? "column" : "row"}
       gap={isMobile ? 4 : 2}
+      alignItems={isMobile ? "start" : "center"}
     >
       <Box paddingX={isMobile ? 0 : 2} marginBottom={isMobile ? 4 : 0}>
         <Label htmlFor="searchField">

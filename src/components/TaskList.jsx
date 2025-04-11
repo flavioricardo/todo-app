@@ -1,8 +1,9 @@
-import React from "react";
-import { Badge, Box, Button, Checkbox, Fieldset } from "gestalt";
-import { translations } from "../constants/translations";
-import { getCategoryColor } from "../constants/categories";
+import { Badge, Box, Button, Checkbox, Fieldset, Text } from "gestalt";
+
 import PropTypes from "prop-types";
+import React from "react";
+import { getCategoryColor } from "../constants/categories";
+import { translations } from "../constants/translations";
 
 export default function TaskList({
   tasks,
@@ -16,28 +17,32 @@ export default function TaskList({
     <>
       <Box marginTop={4} width="100%">
         <Fieldset legend={translations[language].taskList}>
-          {tasks.length
-            ? tasks.map((task) => (
-                <Box
-                  key={task.id}
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="between"
-                  padding={2}
-                >
-                  <Checkbox
-                    id={`task-${task.id}`}
-                    checked={task.completed}
-                    label={task.text}
-                    onChange={() => onToggleTask(task.id)}
-                  />
-                  <Badge
-                    text={translations[language].categories[task.category]}
-                    type={getCategoryColor(task.category)}
-                  />
-                </Box>
-              ))
-            : null}
+          {tasks.length ? (
+            tasks.map((task) => (
+              <Box
+                key={task.id}
+                display="flex"
+                alignItems="center"
+                justifyContent="between"
+                padding={2}
+              >
+                <Checkbox
+                  id={`task-${task.id}`}
+                  checked={task.completed}
+                  label={task.text}
+                  onChange={() => onToggleTask(task.id)}
+                />
+                <Badge
+                  text={translations[language].categories[task.category]}
+                  type={getCategoryColor(task.category)}
+                />
+              </Box>
+            ))
+          ) : (
+            <Box padding={3} display="flex" justifyContent="center">
+              <Text>{translations[language].emptyTaskList}</Text>
+            </Box>
+          )}
         </Fieldset>
       </Box>
 

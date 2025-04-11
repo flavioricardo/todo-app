@@ -153,7 +153,9 @@ export default function TodoApp() {
       setUser(userCredential.user);
       setOpenLoginModal(false);
     } catch (error) {
-      alert("Error logging in with email: " + error.message);
+      showToastMessage(
+        `${translations[language].loginEmailError}: ${error.message}`
+      );
     }
   };
 
@@ -193,7 +195,9 @@ export default function TodoApp() {
       setUser(result.user);
       setOpenLoginModal(false);
     } catch (error) {
-      alert("Error logging in with Google: " + error.message);
+      showToastMessage(
+        `${translations[language].loginGoogleError}: ${error.message}`
+      );
     }
   };
 
@@ -207,6 +211,7 @@ export default function TodoApp() {
       setTasks(localTasks);
     } catch (error) {
       console.error("Error signing out:", error);
+      showToastMessage(translations[language].signOutError);
     }
   };
 
@@ -232,7 +237,7 @@ export default function TodoApp() {
       }
     } catch (error) {
       console.error("Error adding task:", error);
-      showToastMessage("Error adding task");
+      showToastMessage(translations[language].addTaskError);
     } finally {
       setIsLoading(false);
     }
@@ -262,7 +267,7 @@ export default function TodoApp() {
       setTasks(updated);
     } catch (error) {
       console.error("Error updating task:", error);
-      showToastMessage("Error updating task");
+      showToastMessage(translations[language].updateTaskError);
     } finally {
       setIsLoading(false);
     }
@@ -285,10 +290,10 @@ export default function TodoApp() {
       }
 
       setTasks(remainingTasks);
-      showToastMessage("Completed tasks removed successfully");
+      showToastMessage(translations[language].clearCompletedSuccess);
     } catch (error) {
       console.error("Error clearing completed tasks:", error);
-      showToastMessage("Error clearing completed tasks");
+      showToastMessage(translations[language].clearCompletedError);
     } finally {
       setIsLoading(false);
     }
