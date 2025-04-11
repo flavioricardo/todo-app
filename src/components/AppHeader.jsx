@@ -60,8 +60,14 @@ export default function AppHeader({
               value={language}
               onChange={({ value }) => setLanguage(value)}
             >
-              <SelectList.Option label="Português" value="pt" />
-              <SelectList.Option label="English" value="en" />
+              <SelectList.Option
+                label={translations[language].portuguese}
+                value="pt"
+              />
+              <SelectList.Option
+                label={translations[language].english}
+                value="en"
+              />
             </SelectList>
             {user?.email && (
               <IconButton
@@ -114,7 +120,10 @@ export default function AppHeader({
               onSelect={() => setLanguage(language === "en" ? "pt" : "en")}
               option={{
                 value: language,
-                label: language === "en" ? "English" : "Português",
+                label:
+                  language === "en"
+                    ? translations[language].english
+                    : translations[language].portuguese,
               }}
               iconEnd="globe"
             />,

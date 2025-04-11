@@ -57,9 +57,14 @@ const CategoryGroup = ({
           />
         </Text>
         <IconButton
+          size="sm"
           icon={isExpanded ? "minimize" : "maximize"}
           onClick={() => onToggleExpand(category)}
-          accessibilityLabel={isExpanded ? "Minimize" : "Expand"}
+          accessibilityLabel={
+            isExpanded
+              ? translations[language].minimize
+              : translations[language].expand
+          }
         />
       </Box>
 
