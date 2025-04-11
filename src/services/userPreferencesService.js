@@ -6,7 +6,6 @@ import { storage } from "../utils/storage";
 const COLLECTION_NAME = "users";
 
 export const userPreferencesService = {
-  // Get user preferences
   async getUserPreferences(userId) {
     try {
       const userPrefsRef = doc(db, COLLECTION_NAME, userId);
@@ -15,7 +14,6 @@ export const userPreferencesService = {
       if (docSnap.exists()) {
         return docSnap.data();
       } else {
-        // Return defaults if not exists
         return {
           theme: storage.get("theme", "lightWash"),
           language: storage.get("language", "pt"),
@@ -27,7 +25,6 @@ export const userPreferencesService = {
     }
   },
 
-  // Save user preferences
   async saveUserPreferences(userId, preferences) {
     try {
       const userPrefsRef = doc(db, COLLECTION_NAME, userId);
@@ -47,7 +44,6 @@ export const userPreferencesService = {
     }
   },
 
-  // Update single preference
   async updatePreference(userId, key, value) {
     try {
       const userPrefsRef = doc(db, COLLECTION_NAME, userId);

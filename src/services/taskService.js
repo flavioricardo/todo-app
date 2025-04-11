@@ -17,7 +17,6 @@ import { storage } from "../utils/storage";
 const COLLECTION_NAME = "tasks";
 
 export const taskService = {
-  // Get all user tasks
   async getUserTasks(userId) {
     try {
       const tasksQuery = query(
@@ -42,7 +41,6 @@ export const taskService = {
     }
   },
 
-  // Add new task
   async addTask(task, userId) {
     try {
       const taskWithMeta = {
@@ -63,7 +61,6 @@ export const taskService = {
     }
   },
 
-  // Update existing task
   async updateTask(task, userId) {
     try {
       const { firebaseId } = task;
@@ -85,7 +82,6 @@ export const taskService = {
     }
   },
 
-  // Delete task
   async deleteTask(taskId) {
     try {
       await deleteDoc(doc(db, COLLECTION_NAME, taskId));
@@ -96,21 +92,16 @@ export const taskService = {
     }
   },
 
-  // Sync local tasks with Firestore when user logs in
   async syncTasks(userId) {
     try {
-      // Get local tasks
       const localTasks = storage.get("tasks", []);
 
-      // If no local tasks, just load from Firebase
       if (localTasks.length === 0) {
         return await this.getUserTasks(userId);
       }
 
-      // Get remote tasks
       const remoteTasks = await this.getUserTasks(userId);
 
-      // Compare and merge tasks
       const batch = writeBatch(db);
       const tasksToAdd = localTasks.filter(
         (localTask) =>
@@ -118,7 +109,6 @@ export const taskService = {
           !remoteTasks.some((remoteTask) => remoteTask.id === localTask.id)
       );
 
-      // Add new tasks in batch
       for (const task of tasksToAdd) {
         const taskWithMeta = {
           ...task,
@@ -132,10 +122,8 @@ export const taskService = {
         task.firebaseId = docRef.id;
       }
 
-      // Commit batch changes
       await batch.commit();
 
-      // Merge remote and local tasks
       const mergedTasks = [...remoteTasks];
 
       for (const localTask of localTasks) {
@@ -158,14 +146,12 @@ export const taskService = {
     }
   },
 
-  // Sync complete task list
   async syncTaskList(tasks, userId) {
     try {
       const batch = writeBatch(db);
 
       for (const task of tasks) {
         if (task.firebaseId) {
-          // Update existing task
           const taskRef = doc(db, COLLECTION_NAME, task.firebaseId);
           batch.update(taskRef, {
             ...task,
@@ -173,7 +159,6 @@ export const taskService = {
             updatedAt: serverTimestamp(),
           });
         } else {
-          // Add new task
           const taskWithMeta = {
             ...task,
             userId,

@@ -1,8 +1,9 @@
-import React, { useState } from "react";
 import { Box, Button, SelectList, TextField } from "gestalt";
-import { translations } from "../constants/translations";
-import { categoryColors } from "../constants/categories";
+import React, { useState } from "react";
+
 import PropTypes from "prop-types";
+import { categoryColors } from "../constants/categories";
+import { translations } from "../constants/translations";
 
 export default function TaskForm({ onAddTask, language, isMobile, disabled }) {
   const [task, setTask] = useState("");

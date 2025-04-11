@@ -1,6 +1,13 @@
 import "gestalt/dist/gestalt.css";
 
 import {
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+} from "firebase/auth";
+import {
   Box,
   ColorSchemeProvider,
   CompositeZIndex,
@@ -9,57 +16,41 @@ import {
   Flex,
   Spinner,
 } from "gestalt";
-// Firebase imports
-import {
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-} from "firebase/auth";
 import React, { useEffect, useState } from "react";
 
-// Components
 import AppHeader from "./components/AppHeader";
 import LoginModal from "./components/LoginModal";
 import TaskFilters from "./components/TaskFilters";
 import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
 import TaskToast from "./components/TaskToast";
+import { translations } from "./constants/translations";
 import { auth } from "./firebase";
 import { taskService } from "./services/taskService";
-import { storage } from "./utils/storage";
-// Local imports
-import { translations } from "./constants/translations";
 import { userPreferencesService } from "./services/userPreferencesService";
+import { storage } from "./utils/storage";
 import useIsMobile from "./utils/useIsMobile";
 
 export default function TodoApp() {
-  // Basic app state
   const [theme, setTheme] = useState(storage.get("theme", "lightWash"));
   const [language, setLanguage] = useState(storage.get("language", "pt"));
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  // Task management state
   const [tasks, setTasks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [groupBy, setGroupBy] = useState(storage.get("groupBy", "none"));
   const [isLoading, setIsLoading] = useState(false);
 
-  // Authentication state
   const [user, setUser] = useState(null);
   const [openLoginModal, setOpenLoginModal] = useState(false);
 
-  // Constants & Providers
   const googleProvider = new GoogleAuthProvider();
   const isMobile = useIsMobile();
   const HEADER_ZINDEX = new FixedZIndex(10);
   const zIndex = new CompositeZIndex([HEADER_ZINDEX]);
 
-  // Persistence effects
-  // Updated to save to Firebase when user is logged in
   useEffect(() => {
     if (user) {
       userPreferencesService.updatePreference(user.uid, "theme", theme);
@@ -81,7 +72,6 @@ export default function TodoApp() {
     storage.set("groupBy", groupBy);
   }, [groupBy, user]);
 
-  // Load tasks from localStorage when no user
   useEffect(() => {
     if (!user) {
       const localTasks = storage.get("tasks", []);
@@ -89,7 +79,6 @@ export default function TodoApp() {
     }
   }, []);
 
-  // Auth listener and task/preferences sync
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
@@ -97,12 +86,10 @@ export default function TodoApp() {
       if (currentUser) {
         setIsLoading(true);
         try {
-          // Sync tasks
           const syncedTasks = await taskService.syncTasks(currentUser.uid);
           setTasks(syncedTasks);
           storage.set("tasks", syncedTasks);
 
-          // Load user preferences
           const userPrefs = await userPreferencesService.getUserPreferences(
             currentUser.uid
           );
@@ -125,33 +112,27 @@ export default function TodoApp() {
     return () => unsubscribe();
   }, []);
 
-  // Save tasks to localStorage
-  // Only do this when no user is logged in
   useEffect(() => {
     if (!user) {
       storage.set("tasks", tasks);
     }
   }, [tasks, user]);
 
-  // Theme toggle
   const toggleTheme = () => {
     const newTheme = theme === "lightWash" ? "dark" : "lightWash";
     setTheme(newTheme);
   };
 
-  // Language setter
   const handleLanguageChange = (newLanguage) => {
     setLanguage(newLanguage);
   };
 
-  // Toast helper
   const showToastMessage = (message) => {
     setToastMessage(message);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  // Auth handlers
   const handleLoginEmail = async (email, password) => {
     try {
       const userCredential = await signInWithEmailAndPassword(
@@ -168,7 +149,6 @@ export default function TodoApp() {
     }
   };
 
-  // Function to sync tasks with Firebase
   const syncData = async () => {
     if (!user) {
       showToastMessage(translations[language].needLogin);
@@ -178,12 +158,10 @@ export default function TodoApp() {
 
     setIsLoading(true);
     try {
-      // Sync tasks
       const syncedTasks = await taskService.syncTasks(user.uid);
       setTasks(syncedTasks);
       storage.set("tasks", syncedTasks);
 
-      // Sync preferences
       await userPreferencesService.saveUserPreferences(user.uid, {
         theme,
         language,
@@ -216,7 +194,6 @@ export default function TodoApp() {
       await signOut(auth);
       setUser(null);
 
-      // Load tasks from localStorage again
       const localTasks = storage.get("tasks", []);
       setTasks(localTasks);
     } catch (error) {
@@ -225,7 +202,6 @@ export default function TodoApp() {
     }
   };
 
-  // Task handlers
   const addTask = async (taskText, taskCategory) => {
     const newTask = {
       id: Date.now().toString(),
@@ -237,12 +213,10 @@ export default function TodoApp() {
     setIsLoading(true);
     try {
       if (user) {
-        // User logged in - save to Firebase
         setIsLoading(true);
         const savedTask = await taskService.addTask(newTask, user.uid);
         setTasks((prevTasks) => [...prevTasks, savedTask]);
       } else {
-        // User not logged in - save locally only
         setTasks((prevTasks) => [...prevTasks, newTask]);
       }
     } catch (error) {
@@ -264,12 +238,10 @@ export default function TodoApp() {
       };
 
       if (user && updatedTask.firebaseId) {
-        // User logged in and task exists in Firebase
         setIsLoading(true);
         await taskService.updateTask(updatedTask, user.uid);
       }
 
-      // Update local state either way
       const updated = tasks.map((task) =>
         task.id === taskId ? updatedTask : task
       );
@@ -289,7 +261,6 @@ export default function TodoApp() {
       const remainingTasks = tasks.filter((t) => !t.completed);
 
       if (user) {
-        // User logged in - delete from Firebase
         setIsLoading(true);
 
         for (const task of completedTasks) {
@@ -309,7 +280,6 @@ export default function TodoApp() {
     }
   };
 
-  // Filter tasks
   const filteredTasks = tasks.filter((task) => {
     const matches = task.text.toLowerCase().includes(searchTerm.toLowerCase());
     if (filterStatus === "completed") return matches && task.completed;

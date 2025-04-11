@@ -30,48 +30,51 @@ const CategoryGroup = ({
   isMobile,
   isExpanded,
   onToggleExpand,
-}) => (
-  <Box
-    marginBottom={2}
-    marginEnd={2}
-    borderStyle="raisedTopShadow"
-    rounding={3}
-    padding={3}
-    userSelect="none"
-    flex="grow"
-    column={!isMobile && !isExpanded ? 3 : 12}
-    width={isExpanded ? "100%" : undefined}
-  >
+}) => {
+  return (
     <Box
-      display="flex"
-      alignItems="center"
-      justifyContent="between"
-      marginBottom={1}
+      marginBottom={2}
+      marginEnd={2}
+      borderStyle="shadow"
+      color="elevationFloating"
+      rounding={3}
+      padding={3}
+      userSelect="none"
+      flex="grow"
+      column={!isMobile && !isExpanded ? 3 : 12}
+      width={isExpanded ? "100%" : undefined}
     >
-      <Text size="sm">
-        <Badge
-          text={translations[language].categories[category]}
-          type={getCategoryColor(category)}
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="between"
+        marginBottom={1}
+      >
+        <Text size="sm">
+          <Badge
+            text={translations[language].categories[category]}
+            type={getCategoryColor(category)}
+          />
+        </Text>
+        <IconButton
+          icon={isExpanded ? "minimize" : "maximize"}
+          onClick={() => onToggleExpand(category)}
+          accessibilityLabel={isExpanded ? "Minimize" : "Expand"}
         />
-      </Text>
-      <IconButton
-        icon={isExpanded ? "minimize" : "maximize"}
-        onClick={() => onToggleExpand(category)}
-        accessibilityLabel={isExpanded ? "Minimize" : "Expand"}
-      />
-    </Box>
+      </Box>
 
-    {tasks.map((task) => (
-      <TaskItem
-        key={task.id}
-        task={task}
-        onToggleTask={onToggleTask}
-        showCategory={false}
-        language={language}
-      />
-    ))}
-  </Box>
-);
+      {tasks.map((task) => (
+        <TaskItem
+          key={task.id}
+          task={task}
+          onToggleTask={onToggleTask}
+          showCategory={false}
+          language={language}
+        />
+      ))}
+    </Box>
+  );
+};
 
 const EmptyTaskList = ({ language }) => (
   <Box padding={3} display="flex" justifyContent="center">
