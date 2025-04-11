@@ -19,13 +19,14 @@ export default function TaskForm({ onAddTask, language, isMobile, disabled }) {
       marginTop={4}
       display="flex"
       direction={isMobile ? "column" : "row"}
-      justifyContent={isMobile ? "start" : "start"}
-      alignItems={isMobile ? "stretch" : "center"}
+      justifyContent="start"
+      alignItems={isMobile ? "stretch" : "end"}
       gap={isMobile ? 6 : 3}
     >
       <Box marginBottom={isMobile ? 4 : 0} width={isMobile ? "100%" : "auto"}>
         <SelectList
           id="categorySelect"
+          label={translations[language].taskCategory}
           onChange={({ value }) => setCategory(value)}
           size={isMobile ? "lg" : "md"}
           disabled={disabled}
@@ -48,6 +49,7 @@ export default function TaskForm({ onAddTask, language, isMobile, disabled }) {
       >
         <TextField
           id="taskInput"
+          label={translations[language].taskName}
           onChange={({ value }) => setTask(value)}
           placeholder={translations[language].addTaskPlaceholder}
           value={task}

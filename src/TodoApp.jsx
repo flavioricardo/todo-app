@@ -45,6 +45,7 @@ export default function TodoApp() {
   const [tasks, setTasks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [groupBy, setGroupBy] = useState(storage.get("groupBy", "none"));
   const [isLoading, setIsLoading] = useState(false);
 
   // Authentication state
@@ -72,6 +73,13 @@ export default function TodoApp() {
     }
     storage.set("language", language);
   }, [language, user]);
+
+  useEffect(() => {
+    if (user) {
+      userPreferencesService.updatePreference(user.uid, "groupBy", groupBy);
+    }
+    storage.set("groupBy", groupBy);
+  }, [groupBy, user]);
 
   // Load tasks from localStorage when no user
   useEffect(() => {
@@ -101,6 +109,7 @@ export default function TodoApp() {
           if (userPrefs) {
             if (userPrefs.theme) setTheme(userPrefs.theme);
             if (userPrefs.language) setLanguage(userPrefs.language);
+            if (userPrefs.groupBy) setGroupBy(userPrefs.groupBy);
           }
 
           showToastMessage("Tasks and preferences synced successfully!");
@@ -178,6 +187,7 @@ export default function TodoApp() {
       await userPreferencesService.saveUserPreferences(user.uid, {
         theme,
         language,
+        groupBy,
       });
 
       showToastMessage(translations[language].syncSuccess);
@@ -354,8 +364,10 @@ export default function TodoApp() {
           <TaskFilters
             searchTerm={searchTerm}
             filterStatus={filterStatus}
+            groupBy={groupBy}
             onSearchChange={setSearchTerm}
             onFilterChange={setFilterStatus}
+            onGroupByChange={setGroupBy}
             language={language}
             isMobile={isMobile}
             disabled={isLoading}
@@ -374,6 +386,7 @@ export default function TodoApp() {
               onToggleTask={toggleTaskCompletion}
               onClearCompleted={clearCompletedTasks}
               filterStatus={filterStatus}
+              groupBy={groupBy}
               language={language}
               isMobile={isMobile}
             />

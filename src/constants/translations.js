@@ -70,6 +70,9 @@ export const translations = {
     deleteTaskError: "Error deleting task",
     clearCompletedSuccess: "Completed tasks removed successfully",
     clearCompletedError: "Error clearing completed tasks",
+    groupBy: "Group by",
+    groupByNone: "None",
+    groupByCategory: "Category",
   },
   pt: {
     darkMode: "Modo Escuro",
@@ -142,5 +145,8 @@ export const translations = {
     deleteTaskError: "Erro ao excluir tarefa",
     clearCompletedSuccess: "Tarefas concluídas removidas com sucesso",
     clearCompletedError: "Erro ao limpar tarefas concluídas",
+    groupBy: "Agrupar por",
+    groupByNone: "Nenhum",
+    groupByCategory: "Categoria",
   },
 };
