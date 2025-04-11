@@ -52,7 +52,7 @@ const CategoryGroup = ({
       >
         <Text size="sm">
           <Badge
-            text={translations[language].categories[category]}
+            text={translations[language].categories[category] || category}
             type={getCategoryColor(category)}
           />
         </Text>

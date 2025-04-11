@@ -10,9 +10,7 @@ import {
 import {
   Box,
   ColorSchemeProvider,
-  CompositeZIndex,
   DeviceTypeProvider,
-  FixedZIndex,
   Flex,
   Spinner,
 } from "gestalt";
@@ -30,12 +28,16 @@ import { taskService } from "./services/taskService";
 import { userPreferencesService } from "./services/userPreferencesService";
 import { storage } from "./utils/storage";
 import useIsMobile from "./utils/useIsMobile";
+import { categoryService } from "./services/categoryService";
 
 export default function TodoApp() {
   const [theme, setTheme] = useState(storage.get("theme", "lightWash"));
   const [language, setLanguage] = useState(storage.get("language", "pt"));
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [customCategories, setCustomCategories] = useState(
+    storage.getCustomCategories()
+  );
 
   const [tasks, setTasks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -48,8 +50,6 @@ export default function TodoApp() {
 
   const googleProvider = new GoogleAuthProvider();
   const isMobile = useIsMobile();
-  const HEADER_ZINDEX = new FixedZIndex(10);
-  const zIndex = new CompositeZIndex([HEADER_ZINDEX]);
 
   useEffect(() => {
     if (user) {
@@ -97,6 +97,10 @@ export default function TodoApp() {
             if (userPrefs.theme) setTheme(userPrefs.theme);
             if (userPrefs.language) setLanguage(userPrefs.language);
             if (userPrefs.groupBy) setGroupBy(userPrefs.groupBy);
+            if (userPrefs.customCategories) {
+              setCustomCategories(userPrefs.customCategories);
+              storage.set("customCategories", userPrefs.customCategories);
+            }
           }
 
           showToastMessage("Tasks and preferences synced successfully!");
@@ -166,6 +170,7 @@ export default function TodoApp() {
         theme,
         language,
         groupBy,
+        customCategories,
       });
 
       showToastMessage(translations[language].syncSuccess);
@@ -280,6 +285,48 @@ export default function TodoApp() {
     }
   };
 
+  const handleAddCategory = async (category) => {
+    try {
+      if (user) {
+        const updatedCategories = await categoryService.addCustomCategory(
+          user.uid,
+          category
+        );
+        setCustomCategories(updatedCategories);
+      } else {
+        const updatedCategories = storage.addCustomCategory(category);
+        setCustomCategories(updatedCategories);
+      }
+      showToastMessage(translations[language].categoryAdded);
+    } catch (error) {
+      console.error("Error adding category:", error);
+      showToastMessage(translations[language].error);
+    }
+  };
+
+  const handleRemoveCategory = async (category) => {
+    try {
+      const categoryInUse = tasks.some((task) => task.category === category);
+      if (categoryInUse) {
+        showToastMessage(translations[language].categoryInUse);
+        return;
+      }
+
+      if (user) {
+        const updatedCategories =
+          await userPreferencesService.removeCustomCategory(user.uid, category);
+        setCustomCategories(updatedCategories);
+      } else {
+        const updatedCategories = storage.removeCustomCategory(category);
+        setCustomCategories(updatedCategories);
+      }
+      showToastMessage(translations[language].categoryDeleted);
+    } catch (error) {
+      console.error("Error removing category:", error);
+      showToastMessage(translations[language].error);
+    }
+  };
+
   const filteredTasks = tasks.filter((task) => {
     const matches = task.text.toLowerCase().includes(searchTerm.toLowerCase());
     if (filterStatus === "completed") return matches && task.completed;
@@ -321,7 +368,6 @@ export default function TodoApp() {
             onSignOut={handleSignOut}
             user={user}
             language={language}
-            zIndex={zIndex}
           />
 
           <TaskForm
@@ -329,6 +375,10 @@ export default function TodoApp() {
             language={language}
             isMobile={isMobile}
             disabled={isLoading}
+            customCategories={customCategories}
+            onAddCategory={handleAddCategory}
+            onRemoveCategory={handleRemoveCategory}
+            user={user}
           />
 
           <TaskFilters

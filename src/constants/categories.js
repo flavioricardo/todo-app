@@ -1,3 +1,14 @@
+export const availableBadgeColors = [
+  "info",
+  "error",
+  "warning",
+  "success",
+  "neutral",
+  "recommendation",
+  "darkWash",
+  "lightWash",
+];
+
 export const categoryColors = {
   personal_care: "info",
   meal: "success",
@@ -8,9 +19,22 @@ export const categoryColors = {
   social_interaction: "neutral",
 };
 
+const customCategoryColors = new Map();
+
 export const getCategoryColor = (categoryValue) => {
-  if (!categoryColors[categoryValue]) {
-    console.warn(`Unknown category: ${categoryValue}`);
+  if (categoryColors[categoryValue]) {
+    return categoryColors[categoryValue];
   }
-  return categoryColors[categoryValue] || "neutral";
+
+  if (customCategoryColors.has(categoryValue)) {
+    return customCategoryColors.get(categoryValue);
+  }
+
+  const randomColor =
+    availableBadgeColors[
+      Math.floor(Math.random() * availableBadgeColors.length)
+    ];
+  customCategoryColors.set(categoryValue, randomColor);
+
+  return randomColor;
 };

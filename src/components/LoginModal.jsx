@@ -12,6 +12,7 @@ import React, { useState } from "react";
 
 import PropTypes from "prop-types";
 import { translations } from "../constants/translations";
+import { zIndex } from "../utils/zIndex";
 
 export default function LoginModal({
   isOpen,
@@ -21,7 +22,6 @@ export default function LoginModal({
   onSignOut,
   user,
   language,
-  zIndex,
 }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
