@@ -97,14 +97,10 @@ export default function TaskList({
   language,
   isMobile,
 }) {
-  const [expandedCategories, setExpandedCategories] = useState([]);
+  const [expandedCategory, setExpandedCategory] = useState(null);
 
   const toggleCategoryExpand = (category) => {
-    setExpandedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((cat) => cat !== category)
-        : [...prev, category]
-    );
+    setExpandedCategory(expandedCategory === category ? null : category);
   };
 
   const getTasksByCategory = () => {
@@ -129,7 +125,13 @@ export default function TaskList({
         Object.keys(tasksByCategory)
       );
 
-      return orderedCategories.map((category) => (
+      const reorderedCategories = [...orderedCategories].sort((a, b) => {
+        if (expandedCategory === a) return -1;
+        if (expandedCategory === b) return 1;
+        return orderedCategories.indexOf(a) - orderedCategories.indexOf(b);
+      });
+
+      return reorderedCategories.map((category) => (
         <CategoryGroup
           key={category}
           category={category}
@@ -137,7 +139,7 @@ export default function TaskList({
           onToggleTask={onToggleTask}
           language={language}
           isMobile={isMobile}
-          isExpanded={expandedCategories.includes(category)}
+          isExpanded={expandedCategory === category}
           onToggleExpand={toggleCategoryExpand}
         />
       ));
