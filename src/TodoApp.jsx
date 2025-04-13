@@ -16,6 +16,7 @@ import {
 } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 
+import Accordion from "./components/Accordion";
 import AppHeader from "./components/AppHeader";
 import LoginModal from "./components/LoginModal";
 import TaskFilters from "./components/TaskFilters";
@@ -103,7 +104,7 @@ export default function TodoApp() {
             }
           }
 
-          showToastMessage("Tasks and preferences synced successfully!");
+          showToastMessage(translations[language].syncSuccess);
         } catch (error) {
           console.error("Error syncing data:", error);
           showToastMessage("Error syncing data");
@@ -346,7 +347,6 @@ export default function TodoApp() {
           rounding={0}
           justifyContent="center"
           display="block"
-          height="100vh"
         >
           <AppHeader
             theme={theme}
@@ -370,27 +370,46 @@ export default function TodoApp() {
             language={language}
           />
 
-          <TaskForm
-            onAddTask={addTask}
-            language={language}
-            isMobile={isMobile}
-            disabled={isLoading}
-            customCategories={customCategories}
-            onAddCategory={handleAddCategory}
-            onRemoveCategory={handleRemoveCategory}
-            user={user}
-          />
-
-          <TaskFilters
-            searchTerm={searchTerm}
-            filterStatus={filterStatus}
-            groupBy={groupBy}
-            onSearchChange={setSearchTerm}
-            onFilterChange={setFilterStatus}
-            onGroupByChange={setGroupBy}
-            language={language}
-            isMobile={isMobile}
-            disabled={isLoading}
+          <Accordion
+            id="forms-accordion"
+            accessibilityExpandLabel="Expandir seção"
+            accessibilityCollapseLabel="Recolher seção"
+            defaultExpandedIndices={[0, 1]}
+            items={[
+              {
+                icon: "edit",
+                children: (
+                  <TaskForm
+                    onAddTask={addTask}
+                    language={language}
+                    isMobile={isMobile}
+                    disabled={isLoading}
+                    customCategories={customCategories}
+                    onAddCategory={handleAddCategory}
+                    onRemoveCategory={handleRemoveCategory}
+                    user={user}
+                  />
+                ),
+                title: translations[language].addTaskPlaceholder,
+              },
+              {
+                icon: "filter",
+                children: (
+                  <TaskFilters
+                    searchTerm={searchTerm}
+                    filterStatus={filterStatus}
+                    groupBy={groupBy}
+                    onSearchChange={setSearchTerm}
+                    onFilterChange={setFilterStatus}
+                    onGroupByChange={setGroupBy}
+                    language={language}
+                    isMobile={isMobile}
+                    disabled={isLoading}
+                  />
+                ),
+                title: translations[language].filterPlaceholder,
+              },
+            ]}
           />
 
           {isLoading ? (

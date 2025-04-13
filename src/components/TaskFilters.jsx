@@ -15,9 +15,12 @@ export default function TaskFilters({
   isMobile,
   disabled,
 }) {
+  const selectSize = "lg";
+  const mobileWidth = "100%";
+  const defaultWidth = "auto";
+
   return (
     <Box
-      marginTop={4}
       width="100%"
       display="flex"
       direction={isMobile ? "column" : "row"}
@@ -25,28 +28,30 @@ export default function TaskFilters({
       alignItems={isMobile ? "start" : "end"}
       wrap={!isMobile}
     >
-      <Box paddingX={0} marginBottom={isMobile ? 4 : 0}>
+      <Box flex="grow" marginEnd={2} marginBottom={isMobile ? 4 : 0}>
         <SearchField
-          accessibilityLabel={translations[language].searchPlaceholder}
           id="searchField"
-          label={translations[language].filterPlaceholder}
+          accessibilityLabel={translations[language].searchPlaceholder}
           onChange={({ value }) => onSearchChange(value)}
           placeholder={translations[language].searchPlaceholder}
           value={searchTerm}
-          size={isMobile ? "lg" : "md"}
+          size={selectSize}
           disabled={disabled}
         />
       </Box>
+
       <Box
         paddingX={isMobile ? 0 : 2}
         marginBottom={isMobile ? 4 : 0}
-        width={isMobile ? "100%" : "auto"}
+        width={isMobile ? mobileWidth : defaultWidth}
       >
         <SelectList
           id="filterStatus"
+          labelDisplay="hidden"
           label={translations[language].taskCategory}
+          placeholder={translations[language].taskCategory}
           onChange={({ value }) => onFilterChange(value)}
-          size={isMobile ? "lg" : "md"}
+          size={selectSize}
           value={filterStatus}
           disabled={disabled}
         >
@@ -61,12 +66,18 @@ export default function TaskFilters({
           />
         </SelectList>
       </Box>
-      <Box paddingX={isMobile ? 0 : 2} width={isMobile ? "100%" : "auto"}>
+
+      <Box
+        paddingX={isMobile ? 0 : 2}
+        width={isMobile ? mobileWidth : defaultWidth}
+      >
         <SelectList
           id="groupBy"
+          labelDisplay="hidden"
           label={translations[language].groupBy}
+          placeholder={translations[language].groupBy}
           onChange={({ value }) => onGroupByChange(value)}
-          size={isMobile ? "lg" : "md"}
+          size={selectSize}
           value={groupBy}
           disabled={disabled}
         >

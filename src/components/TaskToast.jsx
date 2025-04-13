@@ -1,7 +1,8 @@
-import React from "react";
 import { Flex, Toast } from "gestalt";
-import { translations } from "../constants/translations";
+
 import PropTypes from "prop-types";
+import React from "react";
+import { translations } from "../constants/translations";
 
 export default function TaskToast({ show, message, onDismiss, language }) {
   if (!show) return null;
