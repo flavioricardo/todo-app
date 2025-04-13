@@ -77,6 +77,20 @@ export const categoryService = {
     }
   },
 
+  async updateCategoryOrder(userId, category, newOrder) {
+    try {
+      const categoryDoc = doc(db, COLLECTION_NAME, `${userId}_${category}`);
+      await setDoc(categoryDoc, { order: newOrder }, { merge: true });
+
+      storage.setCategoryOrder(category, newOrder);
+
+      return await this.getUserCategories(userId);
+    } catch (error) {
+      console.error("Error updating category order:", error);
+      throw error;
+    }
+  },
+
   async removeCustomCategory(userId, category) {
     try {
       const categoryDoc = doc(db, COLLECTION_NAME, `${userId}_${category}`);
