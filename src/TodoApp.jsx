@@ -18,7 +18,7 @@ import React, { useEffect, useState } from "react";
 
 import Accordion from "./components/Accordion";
 import AppHeader from "./components/AppHeader";
-import LoginModal from "./components/LoginModal";
+import LoginModal from "./components/Login";
 import TaskFilters from "./components/TaskFilters";
 import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";

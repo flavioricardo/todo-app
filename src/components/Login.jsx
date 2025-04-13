@@ -5,7 +5,7 @@ import {
   Flex,
   Heading,
   Layer,
-  Modal,
+  Sheet,
   TextField,
 } from "gestalt";
 import React, { useState } from "react";
@@ -32,11 +32,10 @@ export default function LoginModal({
 
   return isOpen ? (
     <Layer zIndex={zIndex}>
-      <Modal
-        accessibilityModalLabel="Login"
+      <Sheet
+        accessibilityLabel="Login"
         heading={translations[language].signIn}
         onDismiss={onClose}
-        size="sm"
         footer={
           <Flex justifyContent="between">
             {user?.email && (
@@ -48,6 +47,7 @@ export default function LoginModal({
             )}
           </Flex>
         }
+        size="sm"
       >
         <Box direction="column" padding={4}>
           {!user?.email && (
@@ -82,7 +82,7 @@ export default function LoginModal({
             </Heading>
           )}
         </Box>
-      </Modal>
+      </Sheet>
     </Layer>
   ) : null;
 }
