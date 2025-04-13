@@ -6,7 +6,7 @@ import {
   TextField,
   Tooltip,
 } from "gestalt";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import CategoryManagement from "./CategoryManagement";
 import PropTypes from "prop-types";
@@ -21,10 +21,22 @@ export default function TaskForm({
   customCategories,
   onAddCategory,
   onRemoveCategory,
+  user,
 }) {
   const [task, setTask] = useState("");
   const [category, setCategory] = useState();
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [availableCategories, setAvailableCategories] = useState([]);
+
+  useEffect(() => {
+    const allCats = [
+      ...Object.keys(categoryColors),
+      ...customCategories.filter(
+        (cat) => !Object.keys(categoryColors).includes(cat)
+      ),
+    ];
+    setAvailableCategories(allCats);
+  }, [customCategories]);
 
   const handleAddTask = () => {
     if (!task) return;
@@ -36,13 +48,6 @@ export default function TaskForm({
   const handleTaskChange = ({ value }) => setTask(value);
   const handleOpenCategoryModal = () => setShowCategoryModal(true);
   const handleCloseCategoryModal = () => setShowCategoryModal(false);
-
-  const allCategories = [
-    ...Object.keys(categoryColors),
-    ...customCategories.filter(
-      (cat) => !Object.keys(categoryColors).includes(cat)
-    ),
-  ];
 
   const renderCategorySelector = () => (
     <Box
@@ -64,7 +69,7 @@ export default function TaskForm({
           disabled={disabled}
           value={category}
         >
-          {allCategories.map((value) => (
+          {availableCategories.map((value) => (
             <SelectList.Option
               key={value}
               label={translations[language].categories[value] || value}
@@ -135,6 +140,7 @@ export default function TaskForm({
         onRemoveCategory={onRemoveCategory}
         customCategories={customCategories}
         language={language}
+        user={user}
       />
     </>
   );

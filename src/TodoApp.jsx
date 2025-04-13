@@ -98,10 +98,14 @@ export default function TodoApp() {
             if (userPrefs.theme) setTheme(userPrefs.theme);
             if (userPrefs.language) setLanguage(userPrefs.language);
             if (userPrefs.groupBy) setGroupBy(userPrefs.groupBy);
-            if (userPrefs.customCategories) {
-              setCustomCategories(userPrefs.customCategories);
-              storage.set("customCategories", userPrefs.customCategories);
-            }
+          }
+
+          const userCategories = await categoryService.getUserCategories(
+            currentUser.uid
+          );
+          if (userCategories && userCategories.length > 0) {
+            setCustomCategories(userCategories);
+            storage.set("customCategories", userCategories);
           }
 
           showToastMessage(translations[language].syncSuccess);
@@ -171,8 +175,9 @@ export default function TodoApp() {
         theme,
         language,
         groupBy,
-        customCategories,
       });
+
+      await categoryService.saveCategories(user.uid, customCategories);
 
       showToastMessage(translations[language].syncSuccess);
     } catch (error) {
@@ -294,6 +299,7 @@ export default function TodoApp() {
           category
         );
         setCustomCategories(updatedCategories);
+        storage.set("customCategories", updatedCategories);
       } else {
         const updatedCategories = storage.addCustomCategory(category);
         setCustomCategories(updatedCategories);
@@ -314,9 +320,12 @@ export default function TodoApp() {
       }
 
       if (user) {
-        const updatedCategories =
-          await userPreferencesService.removeCustomCategory(user.uid, category);
+        const updatedCategories = await categoryService.removeCustomCategory(
+          user.uid,
+          category
+        );
         setCustomCategories(updatedCategories);
+        storage.set("customCategories", updatedCategories);
       } else {
         const updatedCategories = storage.removeCustomCategory(category);
         setCustomCategories(updatedCategories);
