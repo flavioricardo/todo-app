@@ -8,47 +8,63 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          // Chunk para React
+          // Bibliotecas principais
           "vendor-react": ["react", "react-dom", "react/jsx-runtime"],
-
-          // Chunk para Firebase (grande biblioteca)
           "vendor-firebase": [
             "firebase/app",
             "firebase/auth",
             "firebase/firestore",
             "firebase/analytics",
           ],
-
-          // Chunk para Gestalt UI
           "vendor-gestalt": ["gestalt"],
+          "vendor-prop-types": ["prop-types"],
 
-          // Chunk para hooks e utilitários
-          utils: ["./src/utils/storage.js", "./src/utils/useIsMobile.js"],
+          // Utilitários e constantes
+          "app-utils": [
+            "./src/utils/storage.js",
+            "./src/utils/useIsMobile.js",
+            "./src/utils/zIndex.js",
+          ],
+          "app-constants": [
+            "./src/constants/translations.js",
+            "./src/constants/categories.js",
+          ],
 
-          // Chunk para serviços
-          services: ["./src/services/taskService.js"],
+          // Serviços de dados
+          "app-services": [
+            "./src/services/taskService.js",
+            "./src/services/userPreferencesService.js",
+            "./src/services/categoryService.js",
+          ],
 
-          // Chunk para componentes menores
-          "components-small": [
+          // Componentes básicos da UI
+          "ui-components-form": [
             "./src/components/TaskForm.jsx",
             "./src/components/TaskFilters.jsx",
+            "./src/components/CategoryManagement.jsx",
+          ],
+
+          // Componentes de interface principais
+          "ui-components-core": [
+            "./src/components/AppHeader.jsx",
+            "./src/components/Accordion.jsx",
             "./src/components/TaskToast.jsx",
           ],
 
-          // Cada componente grande em seu próprio chunk
-          "component-header": ["./src/components/AppHeader.jsx"],
-          "component-login": ["./src/components/LoginModal.jsx"],
-          "component-tasklist": ["./src/components/TaskList.jsx"],
+          // Componentes complexos
+          "ui-components-task": ["./src/components/TaskList.jsx"],
+          "ui-components-auth": ["./src/components/Login.jsx"],
         },
       },
     },
     // Aumentar o limite para evitar warnings enquanto testamos
-    chunkSizeWarningLimit: 600,
+    chunkSizeWarningLimit: 800,
     // Otimizações adicionais
     minify: "terser",
     terserOptions: {
       compress: {
         drop_console: true,
+        drop_debugger: true,
       },
     },
   },
