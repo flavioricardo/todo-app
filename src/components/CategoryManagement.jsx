@@ -4,7 +4,7 @@ import {
   Flex,
   IconButton,
   Layer,
-  Modal,
+  Sheet,
   Text,
   TextField,
   Toast,
@@ -33,7 +33,11 @@ export default function CategoryManagement({
       return;
     }
 
-    if (customCategories.includes(newCategory)) {
+    if (
+      customCategories.some(
+        (category) => category.toLowerCase() === newCategory.toLowerCase()
+      )
+    ) {
       showToastMessage(translations[language].categoryAlreadyExists);
       return;
     }
@@ -52,16 +56,17 @@ export default function CategoryManagement({
   return (
     <Layer zIndex={zIndex}>
       {isOpen && (
-        <Modal
-          accessibilityModalLabel={translations[language].manageCategories}
+        <Sheet
+          accessibilityDismissButtonLabel={translations[language].close}
+          accessibilitySheetLabel={translations[language].manageCategories}
           heading={translations[language].manageCategories}
           onDismiss={onClose}
-          size="sm"
           footer={
             <Flex justifyContent="end">
               <Button text={translations[language].close} onClick={onClose} />
             </Flex>
           }
+          size="sm"
         >
           <Box padding={4}>
             <Flex direction="column" gap={4}>
@@ -70,14 +75,17 @@ export default function CategoryManagement({
                   {translations[language].addNewCategory}
                 </Text>
                 <Flex gap={2} alignItems="center">
-                  <Box flex="grow">
+                  <Box flex="grow" marginTop={2}>
                     <TextField
                       id="newCategory"
                       onChange={({ value }) => setNewCategory(value)}
+                      labelDisplay="hidden"
+                      label={translations[language].categoryNamePlaceholder}
                       placeholder={
                         translations[language].categoryNamePlaceholder
                       }
                       value={newCategory}
+                      size="lg"
                     />
                   </Box>
                   <Button
@@ -85,7 +93,7 @@ export default function CategoryManagement({
                     onClick={handleAddCategory}
                     color="blue"
                     disabled={!newCategory.trim()}
-                    size="sm"
+                    size="lg"
                   />
                 </Flex>
               </Box>
@@ -97,7 +105,7 @@ export default function CategoryManagement({
                 {customCategories.length === 0 ? (
                   <Text>{translations[language].noCustomCategories}</Text>
                 ) : (
-                  <Box marginTop={2}>
+                  <Box marginTop={2} marginBottom={2}>
                     {customCategories.map((category) => (
                       <Flex
                         key={category}
@@ -111,7 +119,7 @@ export default function CategoryManagement({
                           }
                           icon="trash-can"
                           onClick={() => onRemoveCategory(category)}
-                          size="xs"
+                          size="sm"
                         />
                       </Flex>
                     ))}
@@ -120,7 +128,7 @@ export default function CategoryManagement({
               </Box>
             </Flex>
           </Box>
-        </Modal>
+        </Sheet>
       )}
 
       {showToast && (
