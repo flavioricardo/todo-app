@@ -27,6 +27,10 @@ export default function TaskForm({
   const [category, setCategory] = useState();
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [availableCategories, setAvailableCategories] = useState([]);
+  const [errors, setErrors] = useState({
+    task: false,
+    category: false,
+  });
 
   useEffect(() => {
     const allCats = [
@@ -38,14 +42,37 @@ export default function TaskForm({
     setAvailableCategories(allCats);
   }, [customCategories]);
 
-  const handleAddTask = () => {
-    if (!task) return;
-    onAddTask(task, category);
-    setTask("");
+  const validateForm = () => {
+    const newErrors = {
+      task: !task.trim(),
+      category: !category,
+    };
+
+    setErrors(newErrors);
+    return !newErrors.task && !newErrors.category;
   };
 
-  const handleCategoryChange = ({ value }) => setCategory(value);
-  const handleTaskChange = ({ value }) => setTask(value);
+  const handleAddTask = () => {
+    if (!validateForm()) return;
+    onAddTask(task, category);
+    setTask("");
+    setErrors({ task: false, category: false });
+  };
+
+  const handleCategoryChange = ({ value }) => {
+    setCategory(value);
+    if (errors.category) {
+      setErrors({ ...errors, category: false });
+    }
+  };
+
+  const handleTaskChange = ({ value }) => {
+    setTask(value);
+    if (errors.task && value.trim()) {
+      setErrors({ ...errors, task: false });
+    }
+  };
+
   const handleOpenCategoryModal = () => setShowCategoryModal(true);
   const handleCloseCategoryModal = () => setShowCategoryModal(false);
 
@@ -68,6 +95,11 @@ export default function TaskForm({
           size="lg"
           disabled={disabled}
           value={category}
+          errorMessage={
+            errors.category
+              ? translations[language].categoryRequired
+              : undefined
+          }
         >
           {availableCategories.map((value) => (
             <SelectList.Option
@@ -107,6 +139,9 @@ export default function TaskForm({
         width="100%"
         size="lg"
         disabled={disabled}
+        errorMessage={
+          errors.task ? translations[language].taskRequired : undefined
+        }
       />
     </Box>
   );

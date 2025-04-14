@@ -25,6 +25,7 @@ export default function AppHeader({
   handleSignOut,
   setOpenLoginModal,
   syncData,
+  onOpenShareModal,
 }) {
   const [open, setOpen] = React.useState(false);
   const anchorRef = useRef(null);
@@ -73,13 +74,22 @@ export default function AppHeader({
                 />
               </SelectList>
               {user?.email && (
-                <IconButton
-                  size="sm"
-                  icon="refresh"
-                  padding={3}
-                  tooltip={{ text: translations[language].syncData }}
-                  onClick={syncData}
-                />
+                <Box display="flex">
+                  <IconButton
+                    size="sm"
+                    icon="refresh"
+                    padding={3}
+                    tooltip={{ text: translations[language].syncData }}
+                    onClick={syncData}
+                  />
+                  <IconButton
+                    size="sm"
+                    icon="share"
+                    padding={3}
+                    tooltip={{ text: translations[language].sharing }}
+                    onClick={() => onOpenShareModal(true)}
+                  />
+                </Box>
               )}
               <Button
                 text={
@@ -148,6 +158,14 @@ export default function AppHeader({
                 onSelect={syncData}
               />,
               <Dropdown.Item
+                key="share-category"
+                option={{
+                  value: "",
+                  label: translations[language].sharing,
+                }}
+                onSelect={() => onOpenShareModal(true)}
+              />,
+              <Dropdown.Item
                 key="get-login"
                 onSelect={() =>
                   user?.email ? handleSignOut() : setOpenLoginModal(true)
@@ -178,4 +196,5 @@ AppHeader.propTypes = {
   handleSignOut: PropTypes.func.isRequired,
   setOpenLoginModal: PropTypes.func.isRequired,
   syncData: PropTypes.func.isRequired,
+  onOpenShareModal: PropTypes.func.isRequired,
 };

@@ -1,4 +1,4 @@
-import { Box, SearchField, SelectList } from "gestalt";
+import { Box, IconButton, SearchField, SelectList } from "gestalt";
 
 import PropTypes from "prop-types";
 import React from "react";
@@ -68,6 +68,8 @@ export default function TaskFilters({
       </Box>
 
       <Box
+        display="flex"
+        alignItems="center"
         paddingX={isMobile ? 0 : 2}
         width={isMobile ? mobileWidth : defaultWidth}
       >
@@ -90,6 +92,16 @@ export default function TaskFilters({
             value="category"
           />
         </SelectList>
+        <IconButton
+          accessibilityLabel={translations[language].groupBy}
+          icon="info-circle"
+          size="sm"
+          padding={isMobile ? 0 : 4}
+          tooltip={{
+            text: translations[language].groupBy,
+            idealDirection: "down",
+          }}
+        />
       </Box>
     </Box>
   );

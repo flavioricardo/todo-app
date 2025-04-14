@@ -14,7 +14,7 @@ import PropTypes from "prop-types";
 import { translations } from "../constants/translations";
 import { zIndex } from "../utils/zIndex";
 
-export default function LoginModal({
+export default function Login({
   isOpen,
   onClose,
   onLoginEmail,
@@ -87,7 +87,7 @@ export default function LoginModal({
   ) : null;
 }
 
-LoginModal.propTypes = {
+Login.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onLoginEmail: PropTypes.func.isRequired,

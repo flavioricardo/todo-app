@@ -18,13 +18,15 @@ import React, { useEffect, useState } from "react";
 
 import Accordion from "./components/Accordion";
 import AppHeader from "./components/AppHeader";
-import LoginModal from "./components/Login";
+import Login from "./components/Login";
+import ShareCategory from "./components/ShareCategory";
 import TaskFilters from "./components/TaskFilters";
 import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
 import TaskToast from "./components/TaskToast";
 import { auth } from "./firebase";
 import { categoryService } from "./services/categoryService";
+import { sharingService } from "./services/sharingService";
 import { storage } from "./utils/storage";
 import { taskService } from "./services/taskService";
 import { translations } from "./constants/translations";
@@ -48,6 +50,7 @@ export default function TodoApp() {
 
   const [user, setUser] = useState(null);
   const [openLoginModal, setOpenLoginModal] = useState(false);
+  const [openShareModal, setOpenShareModal] = useState(false);
 
   const googleProvider = new GoogleAuthProvider();
   const isMobile = useIsMobile();
@@ -151,6 +154,10 @@ export default function TodoApp() {
       );
       setUser(userCredential.user);
       setOpenLoginModal(false);
+
+      await userPreferencesService.ensureUserEmail(
+        userCredential.user.reloadUserInfo.localId
+      );
     } catch (error) {
       showToastMessage(
         `${translations[language].loginEmailError}: ${error.message}`
@@ -193,6 +200,10 @@ export default function TodoApp() {
       const result = await signInWithPopup(auth, googleProvider);
       setUser(result.user);
       setOpenLoginModal(false);
+
+      await userPreferencesService.ensureUserEmail(
+        result.user.reloadUserInfo.localId
+      );
     } catch (error) {
       showToastMessage(
         `${translations[language].loginGoogleError}: ${error.message}`
@@ -337,6 +348,52 @@ export default function TodoApp() {
     }
   };
 
+  const handleShareCategory = async (categoryName, targetEmail) => {
+    if (!user) {
+      showToastMessage(translations[language].needLogin);
+      return;
+    }
+
+    try {
+      const shareResult = await sharingService.shareCategory(
+        categoryName,
+        user.uid,
+        targetEmail
+      );
+
+      showToastMessage(translations[language].shareCategorySuccess);
+      return shareResult;
+    } catch (error) {
+      console.error("Error sharing category:", error);
+      let errorMsg = translations[language].shareCategoryError;
+
+      if (error.message === "User not found") {
+        errorMsg = translations[language].userNotFound;
+      } else if (error.message === "Cannot share with yourself") {
+        errorMsg = translations[language].cannotShareWithYourself;
+      }
+
+      showToastMessage(errorMsg);
+      throw error;
+    }
+  };
+
+  const handleRemoveShare = async (shareId) => {
+    if (!user) {
+      showToastMessage(translations[language].needLogin);
+      return;
+    }
+
+    try {
+      await sharingService.removeShare(shareId);
+      showToastMessage(translations[language].removeShareSuccess);
+    } catch (error) {
+      console.error("Error removing share:", error);
+      showToastMessage(translations[language].removeShareError);
+      throw error;
+    }
+  };
+
   const filteredTasks = tasks.filter((task) => {
     const matches = task.text.toLowerCase().includes(searchTerm.toLowerCase());
     if (filterStatus === "completed") return matches && task.completed;
@@ -367,9 +424,10 @@ export default function TodoApp() {
             handleSignOut={handleSignOut}
             setOpenLoginModal={setOpenLoginModal}
             syncData={syncData}
+            onOpenShareModal={setOpenShareModal}
           />
 
-          <LoginModal
+          <Login
             isOpen={openLoginModal}
             onClose={() => setOpenLoginModal(false)}
             onLoginEmail={handleLoginEmail}
@@ -377,6 +435,19 @@ export default function TodoApp() {
             onSignOut={handleSignOut}
             user={user}
             language={language}
+          />
+
+          <ShareCategory
+            isOpen={openShareModal}
+            onClose={() => setOpenShareModal(false)}
+            categories={[
+              ...Object.keys(translations[language].categories),
+              ...customCategories,
+            ]}
+            language={language}
+            user={user}
+            onShareCategory={handleShareCategory}
+            onRemoveShare={handleRemoveShare}
           />
 
           <Accordion

@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 
 import { db } from "../firebase";
+import { sharingService } from "./sharingService";
 import { storage } from "../utils/storage";
 
 const COLLECTION_NAME = "tasks";
@@ -19,6 +20,7 @@ const COLLECTION_NAME = "tasks";
 export const taskService = {
   async getUserTasks(userId) {
     try {
+      // Buscar tarefas do usuário
       const tasksQuery = query(
         collection(db, COLLECTION_NAME),
         where("userId", "==", userId)
@@ -33,6 +35,32 @@ export const taskService = {
           firebaseId: doc.id,
         });
       });
+
+      // Buscar categorias compartilhadas com o usuário
+      const sharedWithMe = await sharingService.getSharedWithMe(userId);
+
+      // Para cada compartilhamento, buscar tarefas da categoria
+      for (const share of sharedWithMe) {
+        const sharedTasksQuery = query(
+          collection(db, COLLECTION_NAME),
+          where("userId", "==", share.ownerUid),
+          where("category", "==", share.categoryName)
+        );
+
+        const sharedSnapshot = await getDocs(sharedTasksQuery);
+
+        sharedSnapshot.forEach((doc) => {
+          const taskData = doc.data();
+          tasks.push({
+            ...taskData,
+            id: doc.id,
+            firebaseId: doc.id,
+            sharedBy: share.ownerUid,
+            sharedByEmail: share.targetEmail, // Para mostrar quem compartilhou
+            isShared: true,
+          });
+        });
+      }
 
       return tasks;
     } catch (error) {
@@ -106,7 +134,8 @@ export const taskService = {
       const tasksToAdd = localTasks.filter(
         (localTask) =>
           !localTask.firebaseId &&
-          !remoteTasks.some((remoteTask) => remoteTask.id === localTask.id)
+          !remoteTasks.some((remoteTask) => remoteTask.id === localTask.id) &&
+          !localTask.isShared // Não sincronizar tarefas compartilhadas
       );
 
       for (const task of tasksToAdd) {
@@ -127,14 +156,14 @@ export const taskService = {
       const mergedTasks = [...remoteTasks];
 
       for (const localTask of localTasks) {
-        if (localTask.firebaseId) {
+        if (localTask.firebaseId && !localTask.isShared) {
           const index = mergedTasks.findIndex(
             (t) => t.firebaseId === localTask.firebaseId
           );
           if (index >= 0) {
             mergedTasks[index] = localTask;
           }
-        } else {
+        } else if (!localTask.isShared) {
           mergedTasks.push(localTask);
         }
       }

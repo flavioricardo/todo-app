@@ -70,4 +70,24 @@ export const storage = {
     this.set("categoriesOrder", categoriesOrder);
     return categoriesOrder;
   },
+
+  getSharedCategories() {
+    return this.get("sharedCategories", []);
+  },
+
+  addSharedCategory(shareInfo) {
+    const sharedCategories = this.getSharedCategories();
+    sharedCategories.push(shareInfo);
+    this.set("sharedCategories", sharedCategories);
+    return sharedCategories;
+  },
+
+  removeSharedCategory(shareId) {
+    const sharedCategories = this.getSharedCategories();
+    const updatedShared = sharedCategories.filter(
+      (share) => share.id !== shareId
+    );
+    this.set("sharedCategories", updatedShared);
+    return updatedShared;
+  },
 };
