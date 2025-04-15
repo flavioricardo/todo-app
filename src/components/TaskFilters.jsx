@@ -1,4 +1,4 @@
-import { Box, IconButton, SearchField, SelectList } from "gestalt";
+import { Box, Flex, IconButton, SearchField, SelectList } from "gestalt";
 
 import PropTypes from "prop-types";
 import React from "react";
@@ -28,17 +28,23 @@ export default function TaskFilters({
       alignItems={isMobile ? "start" : "end"}
       wrap={!isMobile}
     >
-      <Box flex="grow" marginEnd={2} marginBottom={isMobile ? 4 : 0}>
-        <SearchField
-          id="searchField"
-          accessibilityLabel={translations[language].searchPlaceholder}
-          onChange={({ value }) => onSearchChange(value)}
-          placeholder={translations[language].searchPlaceholder}
-          value={searchTerm}
-          size={selectSize}
-          disabled={disabled}
-        />
-      </Box>
+      <Flex wrap flex="grow" width={isMobile ? mobileWidth : defaultWidth}>
+        <Box
+          flex="grow"
+          marginEnd={isMobile ? 0 : 2}
+          marginBottom={isMobile ? 4 : 0}
+        >
+          <SearchField
+            id="searchField"
+            accessibilityLabel={translations[language].searchPlaceholder}
+            onChange={({ value }) => onSearchChange(value)}
+            placeholder={translations[language].searchPlaceholder}
+            value={searchTerm}
+            size={selectSize}
+            disabled={disabled}
+          />
+        </Box>
+      </Flex>
 
       <Box
         paddingX={isMobile ? 0 : 2}
@@ -68,30 +74,40 @@ export default function TaskFilters({
       </Box>
 
       <Box
+        flex="grow"
         display="flex"
+        direction="row"
         alignItems="center"
         paddingX={isMobile ? 0 : 2}
         width={isMobile ? mobileWidth : defaultWidth}
       >
-        <SelectList
-          id="groupBy"
-          labelDisplay="hidden"
-          label={translations[language].groupBy}
-          placeholder={translations[language].groupBy}
-          onChange={({ value }) => onGroupByChange(value)}
-          size={selectSize}
-          value={groupBy}
-          disabled={disabled}
+        <Flex
+          wrap
+          flex={isMobile ? "grow" : "none"}
+          width={isMobile ? mobileWidth : defaultWidth}
         >
-          <SelectList.Option
-            label={translations[language].groupByNone}
-            value="none"
-          />
-          <SelectList.Option
-            label={translations[language].groupByCategory}
-            value="category"
-          />
-        </SelectList>
+          <Box flex="grow">
+            <SelectList
+              id="groupBy"
+              labelDisplay="hidden"
+              label={translations[language].groupBy}
+              placeholder={translations[language].groupBy}
+              onChange={({ value }) => onGroupByChange(value)}
+              size={selectSize}
+              value={groupBy}
+              disabled={disabled}
+            >
+              <SelectList.Option
+                label={translations[language].groupByNone}
+                value="none"
+              />
+              <SelectList.Option
+                label={translations[language].groupByCategory}
+                value="category"
+              />
+            </SelectList>
+          </Box>
+        </Flex>
         <IconButton
           accessibilityLabel={translations[language].groupBy}
           icon="info-circle"

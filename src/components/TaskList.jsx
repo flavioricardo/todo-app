@@ -6,22 +6,55 @@ import { categoryService } from "../services/categoryService";
 import { getCategoryColor } from "../constants/categories";
 import { translations } from "../constants/translations";
 
-const TaskItem = ({ task, onToggleTask, showCategory, language }) => (
-  <Box display="flex" alignItems="center" justifyContent="between" padding={2}>
-    <Checkbox
-      id={`task-${task.id}`}
-      checked={task.completed}
-      label={task.text}
-      onChange={() => onToggleTask(task.id)}
-    />
-    {showCategory && (
-      <Badge
-        text={translations[language].categories[task.category] || task.category}
-        type={getCategoryColor(task.category)}
+const CompletedTextStyle = ({ children, isCompleted }) => {
+  const ref = React.useRef(null);
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        textDecoration: isCompleted ? "line-through" : "none",
+      }}
+    >
+      <Text overflow="breakWord" lineClamp={2}>
+        {children}
+      </Text>
+    </div>
+  );
+};
+
+const TaskItem = ({ task, onToggleTask, showCategory, language }) => {
+  const isCompleted = task.completed;
+
+  return (
+    <Box
+      display="flex"
+      alignItems="center"
+      justifyContent="between"
+      padding={2}
+      opacity={isCompleted ? 0.6 : 1}
+    >
+      <Checkbox
+        id={`task-${task.id}`}
+        checked={isCompleted}
+        label={
+          <CompletedTextStyle isCompleted={isCompleted}>
+            {task.text}
+          </CompletedTextStyle>
+        }
+        onChange={() => onToggleTask(task.id)}
       />
-    )}
-  </Box>
-);
+      {showCategory && (
+        <Badge
+          text={
+            translations[language].categories[task.category] || task.category
+          }
+          type={getCategoryColor(task.category)}
+        />
+      )}
+    </Box>
+  );
+};
 
 const CategoryGroup = ({
   category,
@@ -114,6 +147,13 @@ export default function TaskList({
     }, {});
   };
 
+  const sortTasksByCompletion = (tasksToSort) => {
+    return [...tasksToSort].sort((a, b) => {
+      if (a.completed === b.completed) return 0;
+      return a.completed ? 1 : -1;
+    });
+  };
+
   const renderTaskList = () => {
     if (tasks.length === 0) {
       return <EmptyTaskList language={language} />;
@@ -136,7 +176,7 @@ export default function TaskList({
         <CategoryGroup
           key={category}
           category={category}
-          tasks={tasksByCategory[category]}
+          tasks={sortTasksByCompletion(tasksByCategory[category])}
           onToggleTask={onToggleTask}
           language={language}
           isMobile={isMobile}
@@ -146,7 +186,7 @@ export default function TaskList({
       ));
     }
 
-    return tasks.map((task) => (
+    return sortTasksByCompletion(tasks).map((task) => (
       <TaskItem
         key={task.id}
         task={task}
@@ -189,6 +229,11 @@ export default function TaskList({
     </>
   );
 }
+
+CompletedTextStyle.propTypes = {
+  children: PropTypes.node.isRequired,
+  isCompleted: PropTypes.bool.isRequired,
+};
 
 TaskItem.propTypes = {
   task: PropTypes.shape({
