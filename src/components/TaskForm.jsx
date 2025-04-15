@@ -3,15 +3,16 @@ import {
   Button,
   IconButton,
   SelectList,
+  Spinner,
   TextField,
   Tooltip,
 } from "gestalt";
 import React, { useEffect, useState } from "react";
 
-import CategoryManagement from "./CategoryManagement";
 import PropTypes from "prop-types";
 import { categoryColors } from "../constants/categories";
 import { translations } from "../constants/translations";
+import CategoryManagement from "./CategoryManagement";
 
 export default function TaskForm({
   onAddTask,
@@ -22,6 +23,7 @@ export default function TaskForm({
   onAddCategory,
   onRemoveCategory,
   user,
+  isAddingTask,
 }) {
   const [task, setTask] = useState("");
   const [category, setCategory] = useState();
@@ -158,14 +160,34 @@ export default function TaskForm({
         {renderCategorySelector()}
         {renderTaskInput()}
 
-        <Button
-          text={translations[language].addTask}
-          onClick={handleAddTask}
-          color="blue"
-          fullWidth={isMobile}
-          size="lg"
-          disabled={disabled || !task}
-        />
+        <Box position="relative">
+          <Button
+            text={translations[language].addTask}
+            onClick={handleAddTask}
+            color="blue"
+            fullWidth={isMobile}
+            size="lg"
+            disabled={disabled || !task || isAddingTask}
+          />
+          {isAddingTask && (
+            <Box
+              position="absolute"
+              dangerouslySetInlineStyle={{
+                __style: {
+                  left: "50%",
+                  top: "50%",
+                  transform: "translate(-50%, -50%)",
+                },
+              }}
+            >
+              <Spinner
+                show
+                size="sm"
+                accessibilityLabel={translations[language].addTaskPlaceholder}
+              />
+            </Box>
+          )}
+        </Box>
       </Box>
 
       <CategoryManagement
@@ -190,9 +212,11 @@ TaskForm.propTypes = {
   onAddCategory: PropTypes.func.isRequired,
   onRemoveCategory: PropTypes.func.isRequired,
   user: PropTypes.object,
+  isAddingTask: PropTypes.bool,
 };
 
 TaskForm.defaultProps = {
   disabled: false,
   customCategories: [],
+  isAddingTask: false,
 };

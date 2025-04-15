@@ -1,10 +1,18 @@
-import { Badge, Box, Button, Checkbox, IconButton, Text } from "gestalt";
+import {
+  Badge,
+  Box,
+  Button,
+  Checkbox,
+  IconButton,
+  Spinner,
+  Text,
+} from "gestalt";
 import React, { useState } from "react";
 
 import PropTypes from "prop-types";
-import { categoryService } from "../services/categoryService";
 import { getCategoryColor } from "../constants/categories";
 import { translations } from "../constants/translations";
+import { categoryService } from "../services/categoryService";
 
 const CompletedTextStyle = ({ children, isCompleted }) => {
   const ref = React.useRef(null);
@@ -23,7 +31,13 @@ const CompletedTextStyle = ({ children, isCompleted }) => {
   );
 };
 
-const TaskItem = ({ task, onToggleTask, showCategory, language }) => {
+const TaskItem = ({
+  task,
+  onToggleTask,
+  showCategory,
+  language,
+  isLoading,
+}) => {
   const isCompleted = task.completed;
 
   return (
@@ -34,16 +48,29 @@ const TaskItem = ({ task, onToggleTask, showCategory, language }) => {
       padding={2}
       opacity={isCompleted ? 0.6 : 1}
     >
-      <Checkbox
-        id={`task-${task.id}`}
-        checked={isCompleted}
-        label={
-          <CompletedTextStyle isCompleted={isCompleted}>
-            {task.text}
-          </CompletedTextStyle>
-        }
-        onChange={() => onToggleTask(task.id)}
-      />
+      {isLoading ? (
+        <Box paddingX={2} display="flex" alignItems="center">
+          <Spinner
+            show
+            size="sm"
+            accessibilityLabel={translations[language].loadingTasks}
+          />
+          <Box paddingX={2}>
+            <Text>{task.text}</Text>
+          </Box>
+        </Box>
+      ) : (
+        <Checkbox
+          id={`task-${task.id}`}
+          checked={isCompleted}
+          label={
+            <CompletedTextStyle isCompleted={isCompleted}>
+              {task.text}
+            </CompletedTextStyle>
+          }
+          onChange={() => onToggleTask(task.id)}
+        />
+      )}
       {showCategory && (
         <Badge
           text={
@@ -64,6 +91,7 @@ const CategoryGroup = ({
   isMobile,
   isExpanded,
   onToggleExpand,
+  loadingTaskIds,
 }) => {
   return (
     <Box
@@ -77,6 +105,7 @@ const CategoryGroup = ({
       flex="grow"
       column={!isMobile && !isExpanded ? 3 : 12}
       width={isExpanded ? "100%" : undefined}
+      position="relative"
     >
       <Box
         display="flex"
@@ -110,6 +139,7 @@ const CategoryGroup = ({
           onToggleTask={onToggleTask}
           showCategory={false}
           language={language}
+          isLoading={loadingTaskIds.includes(task.id)}
         />
       ))}
     </Box>
@@ -130,6 +160,7 @@ export default function TaskList({
   groupBy,
   language,
   isMobile,
+  loadingTaskIds = [],
 }) {
   const [expandedCategory, setExpandedCategory] = useState(null);
 
@@ -182,6 +213,7 @@ export default function TaskList({
           isMobile={isMobile}
           isExpanded={expandedCategory === category}
           onToggleExpand={toggleCategoryExpand}
+          loadingTaskIds={loadingTaskIds}
         />
       ));
     }
@@ -193,6 +225,7 @@ export default function TaskList({
         onToggleTask={onToggleTask}
         showCategory={groupBy !== "category"}
         language={language}
+        isLoading={loadingTaskIds.includes(task.id)}
       />
     ));
   };
@@ -245,6 +278,11 @@ TaskItem.propTypes = {
   onToggleTask: PropTypes.func.isRequired,
   showCategory: PropTypes.bool.isRequired,
   language: PropTypes.string.isRequired,
+  isLoading: PropTypes.bool,
+};
+
+TaskItem.defaultProps = {
+  isLoading: false,
 };
 
 CategoryGroup.propTypes = {
@@ -255,6 +293,11 @@ CategoryGroup.propTypes = {
   isMobile: PropTypes.bool,
   isExpanded: PropTypes.bool,
   onToggleExpand: PropTypes.func.isRequired,
+  loadingTaskIds: PropTypes.array,
+};
+
+CategoryGroup.defaultProps = {
+  loadingTaskIds: [],
 };
 
 EmptyTaskList.propTypes = {
@@ -276,9 +319,11 @@ TaskList.propTypes = {
   groupBy: PropTypes.string,
   language: PropTypes.string.isRequired,
   isMobile: PropTypes.bool,
+  loadingTaskIds: PropTypes.array,
 };
 
 TaskList.defaultProps = {
   groupBy: "none",
   isMobile: false,
+  loadingTaskIds: [],
 };

@@ -1,19 +1,19 @@
 import "gestalt/dist/gestalt.css";
 
 import {
-  Box,
-  ColorSchemeProvider,
-  DeviceTypeProvider,
-  Flex,
-  Spinner,
-} from "gestalt";
-import {
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
 } from "firebase/auth";
+import {
+  Box,
+  ColorSchemeProvider,
+  DeviceTypeProvider,
+  Flex,
+  Spinner,
+} from "gestalt";
 import React, { useEffect, useState } from "react";
 
 import Accordion from "./components/Accordion";
@@ -24,14 +24,14 @@ import TaskFilters from "./components/TaskFilters";
 import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
 import TaskToast from "./components/TaskToast";
+import { translations } from "./constants/translations";
 import { auth } from "./firebase";
 import { categoryService } from "./services/categoryService";
 import { sharingService } from "./services/sharingService";
-import { storage } from "./utils/storage";
 import { taskService } from "./services/taskService";
-import { translations } from "./constants/translations";
-import useIsMobile from "./utils/useIsMobile";
 import { userPreferencesService } from "./services/userPreferencesService";
+import { storage } from "./utils/storage";
+import useIsMobile from "./utils/useIsMobile";
 
 export default function TodoApp() {
   const [theme, setTheme] = useState(storage.get("theme", "lightWash"));
@@ -46,7 +46,9 @@ export default function TodoApp() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [groupBy, setGroupBy] = useState(storage.get("groupBy", "none"));
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingTaskIds, setLoadingTaskIds] = useState([]);
+  const [isAddingTask, setIsAddingTask] = useState(false);
 
   const [user, setUser] = useState(null);
   const [openLoginModal, setOpenLoginModal] = useState(false);
@@ -232,10 +234,9 @@ export default function TodoApp() {
       completed: false,
     };
 
-    setIsLoading(true);
+    setIsAddingTask(true);
     try {
       if (user) {
-        setIsLoading(true);
         const savedTask = await taskService.addTask(newTask, user.uid);
         setTasks((prevTasks) => [...prevTasks, savedTask]);
       } else {
@@ -245,7 +246,7 @@ export default function TodoApp() {
       console.error("Error adding task:", error);
       showToastMessage(translations[language].addTaskError);
     } finally {
-      setIsLoading(false);
+      setIsAddingTask(false);
     }
   };
 
@@ -254,13 +255,14 @@ export default function TodoApp() {
       const taskToUpdate = tasks.find((task) => task.id === taskId);
       if (!taskToUpdate) return;
 
+      setLoadingTaskIds((prev) => [...prev, taskId]);
+
       const updatedTask = {
         ...taskToUpdate,
         completed: !taskToUpdate.completed,
       };
 
       if (user && updatedTask.firebaseId) {
-        setIsLoading(true);
         await taskService.updateTask(updatedTask, user.uid);
       }
 
@@ -273,18 +275,19 @@ export default function TodoApp() {
       console.error("Error updating task:", error);
       showToastMessage(translations[language].updateTaskError);
     } finally {
-      setIsLoading(false);
+      setLoadingTaskIds((prev) => prev.filter((id) => id !== taskId));
     }
   };
 
   const clearCompletedTasks = async () => {
     try {
       const completedTasks = tasks.filter((t) => t.completed);
+      const completedTaskIds = completedTasks.map((task) => task.id);
       const remainingTasks = tasks.filter((t) => !t.completed);
 
-      if (user) {
-        setIsLoading(true);
+      setLoadingTaskIds((prev) => [...prev, ...completedTaskIds]);
 
+      if (user) {
         for (const task of completedTasks) {
           if (task.firebaseId) {
             await taskService.deleteTask(task.firebaseId);
@@ -298,7 +301,7 @@ export default function TodoApp() {
       console.error("Error clearing completed tasks:", error);
       showToastMessage(translations[language].clearCompletedError);
     } finally {
-      setIsLoading(false);
+      setLoadingTaskIds([]);
     }
   };
 
@@ -463,11 +466,12 @@ export default function TodoApp() {
                     onAddTask={addTask}
                     language={language}
                     isMobile={isMobile}
-                    disabled={isLoading}
+                    disabled={isLoading || isAddingTask}
                     customCategories={customCategories}
                     onAddCategory={handleAddCategory}
                     onRemoveCategory={handleRemoveCategory}
                     user={user}
+                    isAddingTask={isAddingTask}
                   />
                 ),
                 title: translations[language].addTaskPlaceholder,
@@ -493,11 +497,13 @@ export default function TodoApp() {
           />
 
           {isLoading ? (
-            <Flex alignItems="center" justifyContent="center" height="200px">
-              <Spinner
-                show
-                accessibilityLabel={translations[language].loadingTasks}
-              />
+            <Flex alignItems="center" flex="grow" justifyContent="center">
+              <Box height="100vh" marginTop={12}>
+                <Spinner
+                  show
+                  accessibilityLabel={translations[language].loadingTasks}
+                />
+              </Box>
             </Flex>
           ) : (
             <TaskList
@@ -508,6 +514,7 @@ export default function TodoApp() {
               groupBy={groupBy}
               language={language}
               isMobile={isMobile}
+              loadingTaskIds={loadingTaskIds}
             />
           )}
 
