@@ -113,6 +113,47 @@ export const categoryService = {
     }
   },
 
+  async saveCategories(userId, categories) {
+    try {
+      const categoriesRef = collection(db, COLLECTION_NAME);
+      const q = query(categoriesRef, where("userId", "==", userId));
+      const querySnapshot = await getDocs(q);
+
+      const batch = [];
+      querySnapshot.forEach((document) => {
+        batch.push(deleteDoc(doc(db, COLLECTION_NAME, document.id)));
+      });
+
+      if (batch.length > 0) {
+        await Promise.all(batch);
+      }
+
+      const categoriesOrder = storage.getCategoriesOrder() || {};
+      const promises = categories.map((category, index) => {
+        const order =
+          categoriesOrder[category] !== undefined
+            ? categoriesOrder[category]
+            : 1000 + index;
+
+        return setDoc(doc(db, COLLECTION_NAME, `${userId}_${category}`), {
+          userId,
+          name: category,
+          order: order,
+          createdAt: serverTimestamp(),
+        });
+      });
+
+      await Promise.all(promises);
+
+      storage.set("customCategories", categories);
+
+      return categories;
+    } catch (error) {
+      console.error("Error saving categories:", error);
+      throw error;
+    }
+  },
+
   getCategoryOrderMap() {
     const defaultOrder = {
       personal_care: 10,
