@@ -1,4 +1,4 @@
-import { Flex, Toast } from "gestalt";
+import { Box, Layer, Toast } from "gestalt";
 
 import PropTypes from "prop-types";
 import React from "react";
@@ -10,15 +10,30 @@ export default function TaskToast({ show, message, onDismiss, language }) {
   const text = translations[language][message] || message;
 
   return (
-    <Flex alignItems="end" height="100%" justifyContent="center" width="100%">
-      <Toast
-        variant="success"
-        text={text}
-        dismissButton={{
-          onDismiss: onDismiss,
+    <Layer>
+      <Box
+        dangerouslySetInlineStyle={{
+          __style: {
+            bottom: 50,
+            left: "50%",
+            transform: "translateX(-50%)",
+          },
         }}
-      />
-    </Flex>
+        display="flex"
+        justifyContent="center"
+        paddingX={1}
+        position="fixed"
+        width="100%"
+      >
+        <Toast
+          variant="success"
+          text={text}
+          dismissButton={{
+            onDismiss: onDismiss,
+          }}
+        />
+      </Box>
+    </Layer>
   );
 }
 
