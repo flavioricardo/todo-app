@@ -411,6 +411,7 @@ export default function TodoApp() {
           as="main"
           margin="auto"
           padding={4}
+          height="100svh"
           width="100%"
           color={theme === "lightWash" ? "lightWash" : "dark"}
           rounding={0}
