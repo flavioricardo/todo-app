@@ -45,6 +45,7 @@ export default function AppHeader({
               naturalHeight={1}
               naturalWidth={1}
               src={logoImage}
+              aria-label="To-Do App Logo"
             />
           )
         }
@@ -58,11 +59,17 @@ export default function AppHeader({
                     : translations[language].lightMode
                 }
                 onClick={toggleTheme}
+                aria-label={
+                  theme === "lightWash"
+                    ? translations[language].darkMode
+                    : translations[language].lightMode
+                }
               />
               <SelectList
                 id="languageSelect"
                 value={language}
                 onChange={({ value }) => setLanguage(value)}
+                aria-label={translations[language].globe}
               >
                 <SelectList.Option
                   label={translations[language].portuguese}
@@ -81,6 +88,7 @@ export default function AppHeader({
                     padding={3}
                     tooltip={{ text: translations[language].syncData }}
                     onClick={syncData}
+                    aria-label={translations[language].syncData}
                   />
                   <IconButton
                     size="sm"
@@ -88,6 +96,7 @@ export default function AppHeader({
                     padding={3}
                     tooltip={{ text: translations[language].sharing }}
                     onClick={() => onOpenShareModal(true)}
+                    aria-label={translations[language].sharing}
                   />
                 </Box>
               )}
@@ -100,6 +109,11 @@ export default function AppHeader({
                 iconEnd="person"
                 onClick={
                   user?.email ? handleSignOut : () => setOpenLoginModal(true)
+                }
+                aria-label={
+                  user?.email
+                    ? translations[language].signOut
+                    : translations[language].signIn
                 }
               />
             </ButtonGroup>
@@ -123,6 +137,7 @@ export default function AppHeader({
                     iconColor="darkGray"
                     onClick={() => setOpen((prev) => !prev)}
                     selected={open}
+                    aria-label={translations[language].options}
                   />
                 </Tooltip>
               </Fragment>

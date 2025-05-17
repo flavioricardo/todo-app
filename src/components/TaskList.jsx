@@ -70,14 +70,17 @@ const TaskItem = ({
             </CompletedTextStyle>
           }
           onChange={() => onToggleTask(task.id)}
+          aria-checked={isCompleted}
+          aria-label={task.text}
         />
       )}
       {!isCompleted && (
         <IconButton
           icon="edit"
           size="xs"
-          accessibilityLabel="Editar"
+          accessibilityLabel={translations[language].editTask}
           onClick={() => onEditTask(task)}
+          aria-label={translations[language].editTask}
         />
       )}
       {showCategory && (
@@ -86,6 +89,9 @@ const TaskItem = ({
             translations[language].categories[task.category] || task.category
           }
           type={getCategoryColor(task.category)}
+          aria-label={
+            translations[language].categories[task.category] || task.category
+          }
         />
       )}
     </Box>
@@ -122,6 +128,7 @@ const CategoryGroup = ({
         alignItems="center"
         justifyContent="between"
         marginBottom={1}
+        aria-label={translations[language].categories[category] || category}
       >
         <Text size="sm">
           <Badge
@@ -139,6 +146,12 @@ const CategoryGroup = ({
               ? translations[language].minimize
               : translations[language].expand
           }
+          aria-label={
+            isExpanded
+              ? translations[language].minimize
+              : translations[language].expand
+          }
+          aria-pressed={isExpanded}
         />
       </Box>
 
@@ -270,6 +283,7 @@ export default function TaskList({
             color="red"
             fullWidth={isMobile}
             size={isMobile ? "lg" : "md"}
+            aria-label={translations[language].clearCompleted}
           />
         </Box>
       )}

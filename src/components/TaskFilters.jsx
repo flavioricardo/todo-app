@@ -37,6 +37,7 @@ export default function TaskFilters({
           <SearchField
             id="searchField"
             accessibilityLabel={translations[language].searchPlaceholder}
+            aria-label={translations[language].searchPlaceholder}
             onChange={({ value }) => onSearchChange(value)}
             placeholder={translations[language].searchPlaceholder}
             value={searchTerm}
@@ -60,6 +61,7 @@ export default function TaskFilters({
           size={selectSize}
           value={filterStatus}
           disabled={disabled}
+          aria-label={translations[language].taskCategory}
         >
           <SelectList.Option label={translations[language].all} value="all" />
           <SelectList.Option
@@ -96,6 +98,7 @@ export default function TaskFilters({
               size={selectSize}
               value={groupBy}
               disabled={disabled}
+              aria-label={translations[language].groupBy}
             >
               <SelectList.Option
                 label={translations[language].groupByNone}
@@ -117,6 +120,7 @@ export default function TaskFilters({
             text: translations[language].groupBy,
             idealDirection: "down",
           }}
+          aria-label={translations[language].groupBy}
         />
       </Box>
     </Box>

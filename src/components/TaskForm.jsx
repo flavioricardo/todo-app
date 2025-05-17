@@ -114,6 +114,7 @@ export default function TaskForm({
               ? translations[language].categoryRequired
               : undefined
           }
+          aria-label={translations[language].taskCategory}
         >
           {availableCategories.map((value) => (
             <SelectList.Option
@@ -131,6 +132,7 @@ export default function TaskForm({
           size="lg"
           onClick={handleOpenCategoryModal}
           disabled={disabled}
+          aria-label={translations[language].manageCategories}
         />
       </Tooltip>
     </Box>
@@ -156,6 +158,7 @@ export default function TaskForm({
         errorMessage={
           errors.task ? translations[language].taskRequired : undefined
         }
+        aria-label={translations[language].taskName}
       />
     </Box>
   );
@@ -189,6 +192,11 @@ export default function TaskForm({
             fullWidth={isMobile}
             size="lg"
             disabled={disabled || !task || isAddingTask}
+            aria-label={
+              editingTask
+                ? translations[language].saveTask
+                : translations[language].addTask
+            }
           />
           {!isAddingTask && editingTask && (
             <Box marginStart={isMobile ? 0 : 2} marginTop={isMobile ? 4 : 0}>
@@ -200,6 +208,7 @@ export default function TaskForm({
                 fullWidth={isMobile}
                 disabled={disabled || isAddingTask}
                 marginStart={2}
+                aria-label={translations[language].cancel}
               />
             </Box>
           )}
