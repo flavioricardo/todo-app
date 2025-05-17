@@ -24,6 +24,8 @@ export default function TaskForm({
   onRemoveCategory,
   user,
   isAddingTask,
+  editingTask,
+  onCancelEdit,
 }) {
   const [task, setTask] = useState("");
   const [category, setCategory] = useState();
@@ -33,6 +35,16 @@ export default function TaskForm({
     task: false,
     category: false,
   });
+
+  useEffect(() => {
+    if (editingTask) {
+      setTask(editingTask.text);
+      setCategory(editingTask.category);
+    } else {
+      setTask("");
+      setCategory();
+    }
+  }, [editingTask]);
 
   useEffect(() => {
     const allCats = [
@@ -160,15 +172,37 @@ export default function TaskForm({
         {renderCategorySelector()}
         {renderTaskInput()}
 
-        <Box position="relative">
+        <Box
+          position="relative"
+          display="flex"
+          direction={isMobile ? "column" : "row"}
+          alignItems={isMobile ? "stretch" : "end"}
+        >
           <Button
-            text={translations[language].addTask}
+            text={
+              editingTask
+                ? translations[language].saveTask
+                : translations[language].addTask
+            }
             onClick={handleAddTask}
             color="blue"
             fullWidth={isMobile}
             size="lg"
             disabled={disabled || !task || isAddingTask}
           />
+          {!isAddingTask && editingTask && (
+            <Box marginStart={isMobile ? 0 : 2} marginTop={isMobile ? 4 : 0}>
+              <Button
+                text={translations[language].cancel}
+                color="red"
+                onClick={onCancelEdit}
+                size="lg"
+                fullWidth={isMobile}
+                disabled={disabled || isAddingTask}
+                marginStart={2}
+              />
+            </Box>
+          )}
           {isAddingTask && (
             <Box
               position="absolute"
@@ -213,6 +247,11 @@ TaskForm.propTypes = {
   onRemoveCategory: PropTypes.func.isRequired,
   user: PropTypes.object,
   isAddingTask: PropTypes.bool,
+  editingTask: PropTypes.shape({
+    text: PropTypes.string,
+    category: PropTypes.string,
+  }),
+  onCancelEdit: PropTypes.func,
 };
 
 TaskForm.defaultProps = {

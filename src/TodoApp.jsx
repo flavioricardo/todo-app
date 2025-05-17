@@ -43,6 +43,7 @@ export default function TodoApp() {
   );
 
   const [tasks, setTasks] = useState([]);
+  const [editingTask, setEditingTask] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [groupBy, setGroupBy] = useState(storage.get("groupBy", "none"));
@@ -226,27 +227,51 @@ export default function TodoApp() {
     }
   };
 
-  const addTask = async (taskText, taskCategory) => {
-    const newTask = {
-      id: Date.now().toString(),
-      text: taskText,
-      category: taskCategory,
-      completed: false,
-    };
-
-    setIsAddingTask(true);
-    try {
-      if (user) {
-        const savedTask = await taskService.addTask(newTask, user.uid);
-        setTasks((prevTasks) => [...prevTasks, savedTask]);
-      } else {
-        setTasks((prevTasks) => [...prevTasks, newTask]);
+  const addOrEditTask = async (taskText, taskCategory) => {
+    if (editingTask) {
+      // Edição
+      const updatedTask = {
+        ...editingTask,
+        text: taskText,
+        category: taskCategory,
+      };
+      setIsAddingTask(true);
+      try {
+        if (user && updatedTask.firebaseId) {
+          await taskService.updateTask(updatedTask, user.uid);
+        }
+        setTasks((prev) =>
+          prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
+        );
+        setEditingTask(null);
+      } catch (error) {
+        showToastMessage(translations[language].updateTaskError);
+        console.error("Error updating task:", error);
+      } finally {
+        setIsAddingTask(false);
       }
-    } catch (error) {
-      console.error("Error adding task:", error);
-      showToastMessage(translations[language].addTaskError);
-    } finally {
-      setIsAddingTask(false);
+    } else {
+      // Adição normal
+      const newTask = {
+        id: Date.now().toString(),
+        text: taskText,
+        category: taskCategory,
+        completed: false,
+      };
+      setIsAddingTask(true);
+      try {
+        if (user) {
+          const savedTask = await taskService.addTask(newTask, user.uid);
+          setTasks((prevTasks) => [...prevTasks, savedTask]);
+        } else {
+          setTasks((prevTasks) => [...prevTasks, newTask]);
+        }
+      } catch (error) {
+        showToastMessage(translations[language].addTaskError);
+        console.log("Error adding task:", error);
+      } finally {
+        setIsAddingTask(false);
+      }
     }
   };
 
@@ -464,7 +489,7 @@ export default function TodoApp() {
                 icon: "edit",
                 children: (
                   <TaskForm
-                    onAddTask={addTask}
+                    onAddTask={addOrEditTask}
                     language={language}
                     isMobile={isMobile}
                     disabled={isLoading || isAddingTask}
@@ -473,6 +498,8 @@ export default function TodoApp() {
                     onRemoveCategory={handleRemoveCategory}
                     user={user}
                     isAddingTask={isAddingTask}
+                    editingTask={editingTask}
+                    onCancelEdit={() => setEditingTask(null)}
                   />
                 ),
                 title: translations[language].addTaskPlaceholder,
@@ -516,6 +543,7 @@ export default function TodoApp() {
               language={language}
               isMobile={isMobile}
               loadingTaskIds={loadingTaskIds}
+              onEditTask={setEditingTask}
             />
           )}
 

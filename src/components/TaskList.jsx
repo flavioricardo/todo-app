@@ -37,6 +37,7 @@ const TaskItem = ({
   showCategory,
   language,
   isLoading,
+  onEditTask,
 }) => {
   const isCompleted = task.completed;
 
@@ -71,6 +72,14 @@ const TaskItem = ({
           onChange={() => onToggleTask(task.id)}
         />
       )}
+      {!isCompleted && (
+        <IconButton
+          icon="edit"
+          size="xs"
+          accessibilityLabel="Editar"
+          onClick={() => onEditTask(task)}
+        />
+      )}
       {showCategory && (
         <Badge
           text={
@@ -92,6 +101,7 @@ const CategoryGroup = ({
   isExpanded,
   onToggleExpand,
   loadingTaskIds,
+  onEditTask,
 }) => {
   return (
     <Box
@@ -140,6 +150,7 @@ const CategoryGroup = ({
           showCategory={false}
           language={language}
           isLoading={loadingTaskIds.includes(task.id)}
+          onEditTask={onEditTask}
         />
       ))}
     </Box>
@@ -161,6 +172,7 @@ export default function TaskList({
   language,
   isMobile,
   loadingTaskIds = [],
+  onEditTask,
 }) {
   const [expandedCategory, setExpandedCategory] = useState(null);
 
@@ -214,6 +226,7 @@ export default function TaskList({
           isExpanded={expandedCategory === category}
           onToggleExpand={toggleCategoryExpand}
           loadingTaskIds={loadingTaskIds}
+          onEditTask={onEditTask}
         />
       ));
     }
@@ -226,6 +239,7 @@ export default function TaskList({
         showCategory={groupBy !== "category"}
         language={language}
         isLoading={loadingTaskIds.includes(task.id)}
+        onEditTask={onEditTask}
       />
     ));
   };
@@ -279,6 +293,7 @@ TaskItem.propTypes = {
   showCategory: PropTypes.bool.isRequired,
   language: PropTypes.string.isRequired,
   isLoading: PropTypes.bool,
+  onEditTask: PropTypes.func.isRequired,
 };
 
 TaskItem.defaultProps = {
@@ -294,6 +309,7 @@ CategoryGroup.propTypes = {
   isExpanded: PropTypes.bool,
   onToggleExpand: PropTypes.func.isRequired,
   loadingTaskIds: PropTypes.array,
+  onEditTask: PropTypes.func.isRequired,
 };
 
 CategoryGroup.defaultProps = {
@@ -320,6 +336,7 @@ TaskList.propTypes = {
   language: PropTypes.string.isRequired,
   isMobile: PropTypes.bool,
   loadingTaskIds: PropTypes.array,
+  onEditTask: PropTypes.func.isRequired,
 };
 
 TaskList.defaultProps = {
