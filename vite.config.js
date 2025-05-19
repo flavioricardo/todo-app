@@ -65,7 +65,15 @@ export default defineConfig({
       compress: {
         drop_console: true,
         drop_debugger: true,
+        pure_funcs: ["console.log", "console.info"],
+        passes: 2,
+      },
+      mangle: {
+        properties: {
+          regex: /^_/, // Mangler apenas propriedades que começam com _
+        },
       },
     },
+    cssCodeSplit: true,
   },
 });
