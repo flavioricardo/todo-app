@@ -9,14 +9,13 @@ export default defineConfig({
       output: {
         manualChunks: {
           // Bibliotecas principais
-          "vendor-react": ["react", "react-dom", "react/jsx-runtime"],
+          vendor: ["react", "react-dom", "react/jsx-runtime", "gestalt"],
           "vendor-firebase": [
             "firebase/app",
             "firebase/auth",
             "firebase/firestore",
             "firebase/analytics",
           ],
-          "vendor-gestalt": ["gestalt"],
           "vendor-prop-types": ["prop-types"],
 
           // Utilitários e constantes
@@ -75,5 +74,8 @@ export default defineConfig({
       },
     },
     cssCodeSplit: true,
+  },
+  resolve: {
+    dedupe: ["react", "react-dom"], // Força usar uma única instância do React
   },
 });
