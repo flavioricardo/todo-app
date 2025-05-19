@@ -7,12 +7,13 @@ import {
   TextField,
   Tooltip,
 } from "gestalt";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, lazy, useEffect, useState } from "react";
 
 import PropTypes from "prop-types";
 import { categoryColors } from "../constants/categories";
 import { translations } from "../constants/translations";
-import CategoryManagement from "./CategoryManagement";
+
+const CategoryManagement = lazy(() => import("./CategoryManagement"));
 
 export default function TaskForm({
   onAddTask,
@@ -232,16 +233,17 @@ export default function TaskForm({
           )}
         </Box>
       </Box>
-
-      <CategoryManagement
-        isOpen={showCategoryModal}
-        onClose={handleCloseCategoryModal}
-        onAddCategory={onAddCategory}
-        onRemoveCategory={onRemoveCategory}
-        customCategories={customCategories}
-        language={language}
-        user={user}
-      />
+      <Suspense fallback={<Spinner show accessibilityLabel="Loading..." />}>
+        <CategoryManagement
+          isOpen={showCategoryModal}
+          onClose={handleCloseCategoryModal}
+          onAddCategory={onAddCategory}
+          onRemoveCategory={onRemoveCategory}
+          customCategories={customCategories}
+          language={language}
+          user={user}
+        />
+      </Suspense>
     </>
   );
 }

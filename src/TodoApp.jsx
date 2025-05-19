@@ -1,5 +1,3 @@
-import "gestalt/dist/gestalt.css";
-
 import {
   GoogleAuthProvider,
   onAuthStateChanged,
@@ -14,15 +12,11 @@ import {
   Flex,
   Spinner,
 } from "gestalt";
-import React, { useEffect, useState } from "react";
-
+import "gestalt/dist/gestalt.css";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import Accordion from "./components/Accordion";
 import AppHeader from "./components/AppHeader";
 import Login from "./components/Login";
-import ShareCategory from "./components/ShareCategory";
-import TaskFilters from "./components/TaskFilters";
-import TaskForm from "./components/TaskForm";
-import TaskList from "./components/TaskList";
 import TaskToast from "./components/TaskToast";
 import { translations } from "./constants/translations";
 import { auth } from "./firebase";
@@ -32,6 +26,10 @@ import { taskService } from "./services/taskService";
 import { userPreferencesService } from "./services/userPreferencesService";
 import { storage } from "./utils/storage";
 import useIsMobile from "./utils/useIsMobile";
+const ShareCategory = lazy(() => import("./components/ShareCategory"));
+const TaskFilters = lazy(() => import("./components/TaskFilters"));
+const TaskForm = lazy(() => import("./components/TaskForm"));
+const TaskList = lazy(() => import("./components/TaskList"));
 
 export default function TodoApp() {
   const [theme, setTheme] = useState(storage.get("theme", "lightWash"));
@@ -41,7 +39,6 @@ export default function TodoApp() {
   const [customCategories, setCustomCategories] = useState(
     storage.getCustomCategories()
   );
-
   const [tasks, setTasks] = useState([]);
   const [editingTask, setEditingTask] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -50,7 +47,6 @@ export default function TodoApp() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingTaskIds, setLoadingTaskIds] = useState([]);
   const [isAddingTask, setIsAddingTask] = useState(false);
-
   const [user, setUser] = useState(null);
   const [openLoginModal, setOpenLoginModal] = useState(false);
   const [openShareModal, setOpenShareModal] = useState(false);
@@ -89,14 +85,12 @@ export default function TodoApp() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-
       if (currentUser) {
         setIsLoading(true);
         try {
           const syncedTasks = await taskService.syncTasks(currentUser.uid);
           setTasks(syncedTasks);
           storage.set("tasks", syncedTasks);
-
           const userPrefs = await userPreferencesService.getUserPreferences(
             currentUser.uid
           );
@@ -105,7 +99,6 @@ export default function TodoApp() {
             if (userPrefs.language) setLanguage(userPrefs.language);
             if (userPrefs.groupBy) setGroupBy(userPrefs.groupBy);
           }
-
           const userCategories = await categoryService.getUserCategories(
             currentUser.uid
           );
@@ -113,7 +106,6 @@ export default function TodoApp() {
             setCustomCategories(userCategories);
             storage.set("customCategories", userCategories);
           }
-
           showToastMessage(translations[language].syncSuccess);
         } catch (error) {
           console.error("Error syncing data:", error);
@@ -123,7 +115,6 @@ export default function TodoApp() {
         }
       }
     });
-
     return () => unsubscribe();
   }, []);
 
@@ -157,7 +148,6 @@ export default function TodoApp() {
       );
       setUser(userCredential.user);
       setOpenLoginModal(false);
-
       await userPreferencesService.ensureUserEmail(
         userCredential.user.reloadUserInfo.localId
       );
@@ -174,21 +164,17 @@ export default function TodoApp() {
       setOpenLoginModal(true);
       return;
     }
-
     setIsLoading(true);
     try {
       const syncedTasks = await taskService.syncTasks(user.uid);
       setTasks(syncedTasks);
       storage.set("tasks", syncedTasks);
-
       await userPreferencesService.saveUserPreferences(user.uid, {
         theme,
         language,
         groupBy,
       });
-
       await categoryService.saveCategories(user.uid, customCategories);
-
       showToastMessage(translations[language].syncSuccess);
     } catch (error) {
       console.error("Error syncing data:", error);
@@ -203,7 +189,6 @@ export default function TodoApp() {
       const result = await signInWithPopup(auth, googleProvider);
       setUser(result.user);
       setOpenLoginModal(false);
-
       await userPreferencesService.ensureUserEmail(
         result.user.reloadUserInfo.localId
       );
@@ -218,7 +203,6 @@ export default function TodoApp() {
     try {
       await signOut(auth);
       setUser(null);
-
       const localTasks = storage.get("tasks", []);
       setTasks(localTasks);
     } catch (error) {
@@ -229,7 +213,6 @@ export default function TodoApp() {
 
   const addOrEditTask = async (taskText, taskCategory) => {
     if (editingTask) {
-      // Edição
       const updatedTask = {
         ...editingTask,
         text: taskText,
@@ -251,7 +234,6 @@ export default function TodoApp() {
         setIsAddingTask(false);
       }
     } else {
-      // Adição normal
       const newTask = {
         id: Date.now().toString(),
         text: taskText,
@@ -279,22 +261,17 @@ export default function TodoApp() {
     try {
       const taskToUpdate = tasks.find((task) => task.id === taskId);
       if (!taskToUpdate) return;
-
       setLoadingTaskIds((prev) => [...prev, taskId]);
-
       const updatedTask = {
         ...taskToUpdate,
         completed: !taskToUpdate.completed,
       };
-
       if (user && updatedTask.firebaseId) {
         await taskService.updateTask(updatedTask, user.uid);
       }
-
       const updated = tasks.map((task) =>
         task.id === taskId ? updatedTask : task
       );
-
       setTasks(updated);
     } catch (error) {
       console.error("Error updating task:", error);
@@ -309,9 +286,7 @@ export default function TodoApp() {
       const completedTasks = tasks.filter((t) => t.completed);
       const completedTaskIds = completedTasks.map((task) => task.id);
       const remainingTasks = tasks.filter((t) => !t.completed);
-
       setLoadingTaskIds((prev) => [...prev, ...completedTaskIds]);
-
       if (user) {
         for (const task of completedTasks) {
           if (task.firebaseId) {
@@ -319,7 +294,6 @@ export default function TodoApp() {
           }
         }
       }
-
       setTasks(remainingTasks);
       showToastMessage(translations[language].clearCompletedSuccess);
     } catch (error) {
@@ -357,7 +331,6 @@ export default function TodoApp() {
         showToastMessage(translations[language].categoryInUse);
         return;
       }
-
       if (user) {
         const updatedCategories = await categoryService.removeCustomCategory(
           user.uid,
@@ -381,26 +354,22 @@ export default function TodoApp() {
       showToastMessage(translations[language].needLogin);
       return;
     }
-
     try {
       const shareResult = await sharingService.shareCategory(
         categoryName,
         user.uid,
         targetEmail
       );
-
       showToastMessage(translations[language].shareCategorySuccess);
       return shareResult;
     } catch (error) {
       console.error("Error sharing category:", error);
       let errorMsg = translations[language].shareCategoryError;
-
       if (error.message === "User not found") {
         errorMsg = translations[language].userNotFound;
       } else if (error.message === "Cannot share with yourself") {
         errorMsg = translations[language].cannotShareWithYourself;
       }
-
       showToastMessage(errorMsg);
       throw error;
     }
@@ -411,7 +380,6 @@ export default function TodoApp() {
       showToastMessage(translations[language].needLogin);
       return;
     }
-
     try {
       await sharingService.removeShare(shareId);
       showToastMessage(translations[language].removeShareSuccess);
@@ -455,7 +423,6 @@ export default function TodoApp() {
             syncData={syncData}
             onOpenShareModal={setOpenShareModal}
           />
-
           <Login
             isOpen={openLoginModal}
             onClose={() => setOpenLoginModal(false)}
@@ -465,94 +432,92 @@ export default function TodoApp() {
             user={user}
             language={language}
           />
-
-          <ShareCategory
-            isOpen={openShareModal}
-            onClose={() => setOpenShareModal(false)}
-            categories={[
-              ...Object.keys(translations[language].categories),
-              ...customCategories,
-            ]}
-            language={language}
-            user={user}
-            onShareCategory={handleShareCategory}
-            onRemoveShare={handleRemoveShare}
-          />
-
-          <Accordion
-            id="forms-accordion"
-            accessibilityExpandLabel="Expandir seção"
-            accessibilityCollapseLabel="Recolher seção"
-            defaultExpandedIndices={[0, 1]}
-            items={[
-              {
-                icon: "edit",
-                children: (
-                  <TaskForm
-                    onAddTask={addOrEditTask}
-                    language={language}
-                    isMobile={isMobile}
-                    disabled={isLoading || isAddingTask}
-                    customCategories={customCategories}
-                    onAddCategory={handleAddCategory}
-                    onRemoveCategory={handleRemoveCategory}
-                    user={user}
-                    isAddingTask={isAddingTask}
-                    editingTask={editingTask}
-                    onCancelEdit={() => setEditingTask(null)}
-                  />
-                ),
-                title: translations[language].addTaskPlaceholder,
-              },
-              {
-                icon: "filter",
-                children: (
-                  <TaskFilters
-                    searchTerm={searchTerm}
-                    filterStatus={filterStatus}
-                    groupBy={groupBy}
-                    onSearchChange={setSearchTerm}
-                    onFilterChange={setFilterStatus}
-                    onGroupByChange={setGroupBy}
-                    language={language}
-                    isMobile={isMobile}
-                    disabled={isLoading}
-                  />
-                ),
-                title: translations[language].filterPlaceholder,
-              },
-            ]}
-          />
-
-          {isLoading ? (
-            <Flex alignItems="center" flex="grow" justifyContent="center">
-              <Box height="100vh" marginTop={12}>
-                <Spinner
-                  show
-                  accessibilityLabel={translations[language].loadingTasks}
-                />
-              </Box>
-            </Flex>
-          ) : (
-            <TaskList
-              tasks={filteredTasks}
-              onToggleTask={toggleTaskCompletion}
-              onClearCompleted={clearCompletedTasks}
-              filterStatus={filterStatus}
-              groupBy={groupBy}
+          <Suspense fallback={<Spinner show accessibilityLabel="Loading..." />}>
+            <ShareCategory
+              isOpen={openShareModal}
+              onClose={() => setOpenShareModal(false)}
+              categories={[
+                ...Object.keys(translations[language].categories),
+                ...customCategories,
+              ]}
               language={language}
-              isMobile={isMobile}
-              loadingTaskIds={loadingTaskIds}
-              onEditTask={setEditingTask}
+              user={user}
+              onShareCategory={handleShareCategory}
+              onRemoveShare={handleRemoveShare}
             />
-          )}
-
-          <TaskToast
-            show={showToast}
-            message={toastMessage}
-            onDismiss={() => setShowToast(false)}
-            language={language}
-          />
+            <Accordion
+              id="forms-accordion"
+              accessibilityExpandLabel="Expandir seção"
+              accessibilityCollapseLabel="Recolher seção"
+              defaultExpandedIndices={[0, 1]}
+              items={[
+                {
+                  icon: "edit",
+                  children: (
+                    <TaskForm
+                      onAddTask={addOrEditTask}
+                      language={language}
+                      isMobile={isMobile}
+                      disabled={isLoading || isAddingTask}
+                      customCategories={customCategories}
+                      onAddCategory={handleAddCategory}
+                      onRemoveCategory={handleRemoveCategory}
+                      user={user}
+                      isAddingTask={isAddingTask}
+                      editingTask={editingTask}
+                      onCancelEdit={() => setEditingTask(null)}
+                    />
+                  ),
+                  title: translations[language].addTaskPlaceholder,
+                },
+                {
+                  icon: "filter",
+                  children: (
+                    <TaskFilters
+                      searchTerm={searchTerm}
+                      filterStatus={filterStatus}
+                      groupBy={groupBy}
+                      onSearchChange={setSearchTerm}
+                      onFilterChange={setFilterStatus}
+                      onGroupByChange={setGroupBy}
+                      language={language}
+                      isMobile={isMobile}
+                      disabled={isLoading}
+                    />
+                  ),
+                  title: translations[language].filterPlaceholder,
+                },
+              ]}
+            />
+            {isLoading ? (
+              <Flex alignItems="center" flex="grow" justifyContent="center">
+                <Box height="100vh" marginTop={12}>
+                  <Spinner
+                    show
+                    accessibilityLabel={translations[language].loadingTasks}
+                  />
+                </Box>
+              </Flex>
+            ) : (
+              <TaskList
+                tasks={filteredTasks}
+                onToggleTask={toggleTaskCompletion}
+                onClearCompleted={clearCompletedTasks}
+                filterStatus={filterStatus}
+                groupBy={groupBy}
+                language={language}
+                isMobile={isMobile}
+                loadingTaskIds={loadingTaskIds}
+                onEditTask={setEditingTask}
+              />
+            )}
+            <TaskToast
+              show={showToast}
+              message={toastMessage}
+              onDismiss={() => setShowToast(false)}
+              language={language}
+            />
+          </Suspense>
         </Box>
       </ColorSchemeProvider>
     </DeviceTypeProvider>
