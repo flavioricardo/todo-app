@@ -9,7 +9,12 @@ export default defineConfig({
       output: {
         manualChunks: {
           // Bibliotecas principais
-          vendor: ["react", "react-dom", "react/jsx-runtime", "gestalt"],
+          "vendor-react": [
+            "react",
+            "react-dom",
+            "react/jsx-runtime",
+            "gestalt",
+          ],
           "vendor-firebase": [
             "firebase/app",
             "firebase/auth",
