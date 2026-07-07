@@ -12,6 +12,7 @@ import React, { Suspense, lazy, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { categoryColors } from "../constants/categories";
 import { translations } from "../constants/translations";
+import { PRIORITIES, priorityLabelKey } from "../constants/priorities";
 
 const CategoryManagement = lazy(() => import("./CategoryManagement"));
 
@@ -30,6 +31,8 @@ export default function TaskForm({
 }) {
   const [task, setTask] = useState("");
   const [category, setCategory] = useState();
+  const [dueDate, setDueDate] = useState("");
+  const [priority, setPriority] = useState("");
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [availableCategories, setAvailableCategories] = useState([]);
   const [errors, setErrors] = useState({
@@ -41,9 +44,13 @@ export default function TaskForm({
     if (editingTask) {
       setTask(editingTask.text);
       setCategory(editingTask.category);
+      setDueDate(editingTask.dueDate || "");
+      setPriority(editingTask.priority || "");
     } else {
       setTask("");
       setCategory();
+      setDueDate("");
+      setPriority("");
     }
   }, [editingTask]);
 
@@ -69,8 +76,13 @@ export default function TaskForm({
 
   const handleAddTask = () => {
     if (!validateForm()) return;
-    onAddTask(task, category);
+    onAddTask(task, category, {
+      dueDate: dueDate || null,
+      priority: priority || null,
+    });
     setTask("");
+    setDueDate("");
+    setPriority("");
     setErrors({ task: false, category: false });
   };
 
@@ -164,6 +176,52 @@ export default function TaskForm({
     </Box>
   );
 
+  const renderDetailsFields = () => (
+    <Box
+      display="flex"
+      direction={isMobile ? "column" : "row"}
+      gap={isMobile ? 6 : 3}
+      marginBottom={isMobile ? 4 : 0}
+      alignItems={isMobile ? "stretch" : "end"}
+    >
+      <Box width={isMobile ? "100%" : 170}>
+        <TextField
+          id="taskDueDate"
+          type="date"
+          label={translations[language].dueDate}
+          onChange={({ value }) => setDueDate(value)}
+          value={dueDate}
+          size="lg"
+          disabled={disabled}
+          aria-label={translations[language].dueDate}
+        />
+      </Box>
+      <Box width={isMobile ? "100%" : 170}>
+        <SelectList
+          id="taskPriority"
+          label={translations[language].priority}
+          onChange={({ value }) => setPriority(value)}
+          size="lg"
+          disabled={disabled}
+          value={priority}
+          aria-label={translations[language].priority}
+        >
+          <SelectList.Option
+            label={translations[language].priorityNone}
+            value=""
+          />
+          {PRIORITIES.map((value) => (
+            <SelectList.Option
+              key={value}
+              label={translations[language][priorityLabelKey[value]]}
+              value={value}
+            />
+          ))}
+        </SelectList>
+      </Box>
+    </Box>
+  );
+
   return (
     <>
       <Box
@@ -175,6 +233,7 @@ export default function TaskForm({
       >
         {renderCategorySelector()}
         {renderTaskInput()}
+        {renderDetailsFields()}
 
         <Box
           position="relative"
@@ -261,6 +320,8 @@ TaskForm.propTypes = {
   editingTask: PropTypes.shape({
     text: PropTypes.string,
     category: PropTypes.string,
+    dueDate: PropTypes.string,
+    priority: PropTypes.string,
   }),
   onCancelEdit: PropTypes.func,
 };

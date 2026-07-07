@@ -5,8 +5,10 @@ import pluginReact from "eslint-plugin-react";
 
 
 export default defineConfig([
+  { ignores: ["dist/**", "build/**", "node_modules/**"] },
   { files: ["**/*.{js,mjs,cjs,jsx}"] },
   { files: ["**/*.{js,mjs,cjs,jsx}"], languageOptions: { globals: globals.browser } },
   { files: ["**/*.{js,mjs,cjs,jsx}"], plugins: { js }, extends: ["js/recommended"] },
   pluginReact.configs.flat.recommended,
+  { settings: { react: { version: "detect" } } },
 ]);

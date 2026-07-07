@@ -13,6 +13,12 @@ import PropTypes from "prop-types";
 import { getCategoryColor } from "../constants/categories";
 import { translations } from "../constants/translations";
 import { categoryService } from "../services/categoryService";
+import {
+  compareByPriorityAndDueDate,
+  getDueDateStatus,
+  priorityBadgeType,
+  priorityLabelKey,
+} from "../constants/priorities";
 
 const CompletedTextStyle = ({ children, isCompleted }) => {
   const ref = React.useRef(null);
@@ -74,6 +80,39 @@ const TaskItem = ({
           aria-label={task.text}
         />
       )}
+      <Box display="flex" alignItems="center" wrap>
+        {task.priority && !isCompleted && (
+          <Box marginEnd={1}>
+            <Badge
+              text={translations[language][priorityLabelKey[task.priority]]}
+              type={priorityBadgeType[task.priority]}
+              aria-label={
+                translations[language][priorityLabelKey[task.priority]]
+              }
+            />
+          </Box>
+        )}
+        {task.dueDate && !isCompleted && (
+          <Box marginEnd={1}>
+            <Badge
+              text={
+                getDueDateStatus(task.dueDate) === "overdue"
+                  ? translations[language].overdue
+                  : getDueDateStatus(task.dueDate) === "today"
+                  ? translations[language].dueToday
+                  : task.dueDate.split("-").reverse().join("/")
+              }
+              type={
+                getDueDateStatus(task.dueDate) === "overdue"
+                  ? "error"
+                  : getDueDateStatus(task.dueDate) === "today"
+                  ? "warning"
+                  : "neutral"
+              }
+            />
+          </Box>
+        )}
+      </Box>
       {!isCompleted && (
         <IconButton
           icon="edit"
@@ -205,8 +244,8 @@ export default function TaskList({
 
   const sortTasksByCompletion = (tasksToSort) => {
     return [...tasksToSort].sort((a, b) => {
-      if (a.completed === b.completed) return 0;
-      return a.completed ? 1 : -1;
+      if (a.completed !== b.completed) return a.completed ? 1 : -1;
+      return compareByPriorityAndDueDate(a, b);
     });
   };
 
@@ -302,6 +341,8 @@ TaskItem.propTypes = {
     text: PropTypes.string.isRequired,
     category: PropTypes.string.isRequired,
     completed: PropTypes.bool.isRequired,
+    dueDate: PropTypes.string,
+    priority: PropTypes.oneOf(["high", "medium", "low"]),
   }).isRequired,
   onToggleTask: PropTypes.func.isRequired,
   showCategory: PropTypes.bool.isRequired,

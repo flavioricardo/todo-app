@@ -13,7 +13,7 @@ import {
   Spinner,
 } from "gestalt";
 import "gestalt/dist/gestalt.css";
-import React, { lazy, Suspense, useEffect, useState } from "react";
+import React, { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Accordion from "./components/Accordion";
 import AppHeader from "./components/AppHeader";
 import Login from "./components/Login";
@@ -53,6 +53,11 @@ export default function TodoApp() {
 
   const googleProvider = new GoogleAuthProvider();
   const isMobile = useIsMobile();
+  const toastTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => clearTimeout(toastTimeoutRef.current);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -136,7 +141,8 @@ export default function TodoApp() {
   const showToastMessage = (message) => {
     setToastMessage(message);
     setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+    clearTimeout(toastTimeoutRef.current);
+    toastTimeoutRef.current = setTimeout(() => setShowToast(false), 3000);
   };
 
   const handleLoginEmail = async (email, password) => {
@@ -149,7 +155,7 @@ export default function TodoApp() {
       setUser(userCredential.user);
       setOpenLoginModal(false);
       await userPreferencesService.ensureUserEmail(
-        userCredential.user.reloadUserInfo.localId
+        userCredential.user.uid
       );
     } catch (error) {
       showToastMessage(
@@ -190,7 +196,7 @@ export default function TodoApp() {
       setUser(result.user);
       setOpenLoginModal(false);
       await userPreferencesService.ensureUserEmail(
-        result.user.reloadUserInfo.localId
+        result.user.uid
       );
     } catch (error) {
       showToastMessage(
@@ -211,12 +217,15 @@ export default function TodoApp() {
     }
   };
 
-  const addOrEditTask = async (taskText, taskCategory) => {
+  const addOrEditTask = async (taskText, taskCategory, taskDetails = {}) => {
+    const { dueDate = null, priority = null } = taskDetails;
     if (editingTask) {
       const updatedTask = {
         ...editingTask,
         text: taskText,
         category: taskCategory,
+        dueDate,
+        priority,
       };
       setIsAddingTask(true);
       try {
@@ -235,10 +244,15 @@ export default function TodoApp() {
       }
     } else {
       const newTask = {
-        id: Date.now().toString(),
+        id:
+          typeof crypto !== "undefined" && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
         text: taskText,
         category: taskCategory,
         completed: false,
+        dueDate,
+        priority,
       };
       setIsAddingTask(true);
       try {
@@ -288,10 +302,11 @@ export default function TodoApp() {
       const remainingTasks = tasks.filter((t) => !t.completed);
       setLoadingTaskIds((prev) => [...prev, ...completedTaskIds]);
       if (user) {
-        for (const task of completedTasks) {
-          if (task.firebaseId) {
-            await taskService.deleteTask(task.firebaseId);
-          }
+        const firebaseIds = completedTasks
+          .map((task) => task.firebaseId)
+          .filter(Boolean);
+        if (firebaseIds.length > 0) {
+          await taskService.deleteTasks(firebaseIds);
         }
       }
       setTasks(remainingTasks);
@@ -390,12 +405,15 @@ export default function TodoApp() {
     }
   };
 
-  const filteredTasks = tasks.filter((task) => {
-    const matches = task.text.toLowerCase().includes(searchTerm.toLowerCase());
-    if (filterStatus === "completed") return matches && task.completed;
-    if (filterStatus === "pending") return matches && !task.completed;
-    return matches;
-  });
+  const filteredTasks = useMemo(() => {
+    const term = searchTerm.toLowerCase();
+    return tasks.filter((task) => {
+      const matches = task.text.toLowerCase().includes(term);
+      if (filterStatus === "completed") return matches && task.completed;
+      if (filterStatus === "pending") return matches && !task.completed;
+      return matches;
+    });
+  }, [tasks, searchTerm, filterStatus]);
 
   return (
     <DeviceTypeProvider deviceType={isMobile ? "mobile" : "desktop"}>
@@ -447,8 +465,8 @@ export default function TodoApp() {
             />
             <Accordion
               id="forms-accordion"
-              accessibilityExpandLabel="Expandir seção"
-              accessibilityCollapseLabel="Recolher seção"
+              accessibilityExpandLabel={translations[language].expandSection}
+              accessibilityCollapseLabel={translations[language].collapseSection}
               defaultExpandedIndices={[0, 1]}
               items={[
                 {

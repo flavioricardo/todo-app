@@ -99,6 +99,8 @@ export const taskService = {
       const taskRef = doc(db, COLLECTION_NAME, firebaseId);
       await updateDoc(taskRef, {
         ...task,
+        dueDate: task.dueDate ?? null,
+        priority: task.priority ?? null,
         userId,
         updatedAt: serverTimestamp(),
       });
@@ -116,6 +118,24 @@ export const taskService = {
       return taskId;
     } catch (error) {
       console.error("Error deleting task:", error);
+      throw error;
+    }
+  },
+
+  async deleteTasks(taskIds) {
+    try {
+      // Firestore limita batches a 500 operações
+      const CHUNK_SIZE = 450;
+      for (let i = 0; i < taskIds.length; i += CHUNK_SIZE) {
+        const batch = writeBatch(db);
+        taskIds.slice(i, i + CHUNK_SIZE).forEach((taskId) => {
+          batch.delete(doc(db, COLLECTION_NAME, taskId));
+        });
+        await batch.commit();
+      }
+      return taskIds;
+    } catch (error) {
+      console.error("Error deleting tasks:", error);
       throw error;
     }
   },
