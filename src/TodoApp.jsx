@@ -419,16 +419,20 @@ export default function TodoApp() {
     <DeviceTypeProvider deviceType={isMobile ? "mobile" : "desktop"}>
       <ColorSchemeProvider colorScheme={theme}>
         <Box
-          as="main"
-          margin="auto"
-          padding={4}
-          height="100dvh"
-          width="100%"
           color={theme === "lightWash" ? "lightWash" : "dark"}
-          rounding={0}
-          justifyContent="center"
-          display="block"
+          minHeight="100dvh"
+          width="100%"
         >
+          <Box
+            as="main"
+            margin="auto"
+            padding={4}
+            maxWidth={960}
+            width="100%"
+            rounding={0}
+            justifyContent="center"
+            display="block"
+          >
           <AppHeader
             theme={theme}
             language={language}
@@ -536,6 +540,7 @@ export default function TodoApp() {
               language={language}
             />
           </Suspense>
+          </Box>
         </Box>
       </ColorSchemeProvider>
     </DeviceTypeProvider>
