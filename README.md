@@ -2,38 +2,36 @@
 
 This project is a To-Do list application created with React. It allows users to add, filter, mark as completed, and remove tasks. The app also supports theme switching (light/dark) and language selection (Portuguese/English).
 
+**Live:** https://flavioricardo.github.io/todo-app/
+
 ## Technologies Used
 
-- **React**: JavaScript library for building user interfaces.
+- **React + Vite**: JavaScript library for building user interfaces, bundled with Vite.
 - **Gestalt**: UI component library developed by Pinterest.
-- **LocalStorage**: Used to persist data in the user's browser.
+- **Firebase**: Authentication and Firestore for cloud persistence when logged in.
+- **LocalStorage**: Fallback persistence in the user's browser.
+- **Vitest + React Testing Library**: Unit tests.
 
 ## Available Scripts
 
 In the project directory, you can run:
 
-### `npm start`
+### `npm run dev`
 
-Runs the app in development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Runs the app in development mode with Vite.\
+Open [http://localhost:5173](http://localhost:5173) to view it in your browser.
 
 ### `npm test`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Runs the Vitest test suite.
 
 ### `npm run build`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Builds the app for production to the `dist` folder.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### `npm run deploy`
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Publishes the production build to GitHub Pages (`gh-pages` branch).
 
 ## To-Do App Features
 
@@ -42,13 +40,17 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 - **Filter Tasks**: Allows filtering tasks by all, completed, or pending.
 - **Search Tasks**: Allows searching tasks by text.
 - **Clear Completed Tasks**: Allows removing all tasks that have been marked as completed.
+- **Due Dates & Priorities**: Tasks support due dates and priority levels.
 - **Theme Switching**: Allows toggling between light and dark themes.
 - **Language Selection**: Allows toggling between Portuguese and English languages.
+- **Cloud Sync**: Tasks sync to Firestore when authenticated (Firebase Auth).
 
 ## Project Structure
 
-- **src/components/TodoApp/TodoApp.js**: Main component of the application that contains all the logic and user interface.
-- **src/index.js**: Entry point of the React application.
+- **src/components/TodoApp/**: Main component of the application.
+- **src/main.jsx**: Entry point of the React application.
+
+Project state and pending items: [STATE.md](./STATE.md)
 
 ## How It Works
 
